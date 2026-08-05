@@ -10,6 +10,7 @@ var (
 	ErrUserAlreadyExists      = errors.New("user already exists")
 	ErrInvalidLoginOrPassword = errors.New("invalid login or password")
 	ErrWrongPassword          = errors.New("wrong password")
+	ErrSessionNotFound        = errors.New("session not found")
 )
 
 type User struct {
