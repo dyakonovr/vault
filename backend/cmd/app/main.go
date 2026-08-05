@@ -1,7 +1,9 @@
 package main
 
-import "log"
+import (
+	"vault/internal/app"
+)
 
 func main() {
-	log.Print("hello")
+	app.Run()
 }
