@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"time"
+	userapp "vault/internal/application/user"
 	"vault/internal/domain"
 	"vault/internal/infrastructure/persistence"
 
@@ -24,7 +25,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	}
 }
 
-func (r *UserRepository) List(ctx context.Context, params ListUsersParams) ([]domain.User, int64, error) {
+func (r *UserRepository) List(ctx context.Context, params userapp.ListUsersCommand) ([]domain.User, int64, error) {
 	var users []UserModel
 	var count int64
 
