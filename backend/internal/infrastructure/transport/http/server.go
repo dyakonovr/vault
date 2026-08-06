@@ -46,33 +46,36 @@ func (s *Server) InitRoutes(
 	s.instance.GET("/health", func(c *echo.Context) error {
 		return c.String(nethttp.StatusOK, "ok")
 	})
-
-	s.instance.Use(httpcommon.RequestIDMiddleware)
-
-	// AUTH
-	authGroup := s.instance.Group("/api/auth")
+	
+	apiGroup := s.instance.Group("/api")
 	{
-		authGroup.POST("/login", authHandler.Login)
-		authGroup.POST("/register", authHandler.Register)
-		authGroup.POST("/logout", authHandler.Logout)
+		s.instance.Use(httpcommon.RequestIDMiddleware)
 
-		// защищённые auth-роуты
-		authProtected := authGroup.Group("", authMiddleware.RequireAuth)
+		// AUTH
+		authGroup := apiGroup.Group("/auth")
 		{
-			authProtected.GET("/me", authHandler.Me)
+			authGroup.POST("/login", authHandler.Login)
+			authGroup.POST("/register", authHandler.Register)
+			authGroup.POST("/logout", authHandler.Logout)
+
+			// защищённые auth-роуты
+			authProtected := authGroup.Group("", authMiddleware.RequireAuth)
+			{
+				authProtected.GET("/me", authHandler.Me)
+			}
 		}
-	}
 
-	// WALLETS
-	wallets := s.instance.Group("/api/wallets", authMiddleware.RequireAuth)
-	{
-		wallets.POST("", walletHandler.Create) // POST   /api/wallets
-
-		walletOwnership := wallets.Group("", walletOwnershipMiddleware.Check)
+		// WALLETS
+		wallets := apiGroup.Group("/wallets", authMiddleware.RequireAuth)
 		{
-			walletOwnership.GET("/:id/balance", walletHandler.GetBalanceByID) // GET    /api/wallets/:id/balance
-			walletOwnership.POST("/:id/deposit", walletHandler.Deposit)       // POST   /api/wallets/:id/deposit
-			walletOwnership.POST("/:id/withdraw", walletHandler.Withdraw)     // POST   /api/wallets/:id/withdraw
+			wallets.POST("", walletHandler.Create) // POST   /api/wallets
+
+			walletOwnership := wallets.Group("", walletOwnershipMiddleware.Check)
+			{
+				walletOwnership.GET("/:id/balance", walletHandler.GetBalanceByID) // GET    /api/wallets/:id/balance
+				walletOwnership.POST("/:id/deposit", walletHandler.Deposit)       // POST   /api/wallets/:id/deposit
+				walletOwnership.POST("/:id/withdraw", walletHandler.Withdraw)     // POST   /api/wallets/:id/withdraw
+			}
 		}
 	}
 }
