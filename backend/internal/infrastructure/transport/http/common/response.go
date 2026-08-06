@@ -14,7 +14,10 @@ func HTTPSuccessResponse(ctx *echo.Context, statusCode int, body any) error {
 		return ctx.NoContent(statusCode)
 	}
 
-	requestID := GetRequestIDFromContext(ctx.Request().Context())
+	requestID, ok := GetRequestIDFromContext(ctx.Request().Context())
+	if !ok {
+		return HTTPErrorResponse(ctx, ErrInternalServerError)
+	}
 
 	return ctx.JSON(statusCode, SuccessResponse{
 		Data:      body,
@@ -50,7 +53,11 @@ func HTTPErrorResponse(ctx *echo.Context, err error) error {
 		logger.FromContext(ctx.Request().Context()).WithError(err).Error("internal server error")
 	}
 
-	requestID := GetRequestIDFromContext(ctx.Request().Context())
+	requestID, ok := GetRequestIDFromContext(ctx.Request().Context())
+	if !ok {
+		return HTTPErrorResponse(ctx, ErrInternalServerError)
+	}
+
 	data.RequestID = requestID
 
 	return ctx.JSON(statusCode, data)

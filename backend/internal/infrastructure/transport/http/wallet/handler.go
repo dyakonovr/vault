@@ -31,7 +31,6 @@ func New(walletService walletService) *WalletHandler {
 // @Failure      500  {object} common.ErrorResponse "Внутренняя ошибка сервера"
 // @Router       /api/wallets/{id}/balance [get]
 func (h *WalletHandler) GetBalanceByID(ctx *echo.Context) error {
-	// TODO: Middleware с проверкой на владельца
 	id, err := httpcommon.GetIDPathParam(ctx)
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
@@ -56,10 +55,9 @@ func (h *WalletHandler) GetBalanceByID(ctx *echo.Context) error {
 // @Failure      500  {object} common.ErrorResponse "Внутренняя ошибка сервера"
 // @Router       /api/wallets [post]
 func (h *WalletHandler) Create(ctx *echo.Context) error {
-	// TODO: заменить на получение UserID из контекста
-	userID, err := httpcommon.GetIDPathParam(ctx)
-	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, err)
+	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
+	if !ok {
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
 	wallet, err := h.walletService.Create(ctx.Request().Context(), wallet.CreateWalletCommand{
@@ -98,10 +96,9 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	// TODO: заменить на получение UserID из контекста
-	userID, err := httpcommon.GetIDPathParam(ctx)
-	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, err)
+	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
+	if !ok {
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
 	wallet, err := h.walletService.Deposit(ctx.Request().Context(), id, wallet.WalletDepositCommand{
@@ -141,10 +138,9 @@ func (h *WalletHandler) Withdraw(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	// TODO: заменить на получение UserID из контекста
-	userID, err := httpcommon.GetIDPathParam(ctx)
-	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, err)
+	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
+	if !ok {
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
 	wallet, err := h.walletService.Withdraw(ctx.Request().Context(), id, wallet.WalletWithdrawCommand{

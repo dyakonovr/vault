@@ -38,7 +38,8 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) InitRoutes(
-	authMiddleware common.AuthMiddleware,
+	authMiddleware *common.AuthMiddleware,
+	walletOwnershipMiddleware *common.WalletOwnershipMiddleware,
 	authHandler *auth.AuthHandler,
 	walletHandler *wallet.WalletHandler,
 ) {
@@ -65,9 +66,13 @@ func (s *Server) InitRoutes(
 	// WALLETS
 	wallets := s.instance.Group("/api/wallets", authMiddleware.RequireAuth)
 	{
-		wallets.POST("", walletHandler.Create)                    // POST   /api/wallets
-		wallets.GET("/:id/balance", walletHandler.GetBalanceByID) // GET    /api/wallets/:id/balance
-		wallets.POST("/:id/deposit", walletHandler.Deposit)       // POST   /api/wallets/:id/deposit
-		wallets.POST("/:id/withdraw", walletHandler.Withdraw)     // POST   /api/wallets/:id/withdraw
+		wallets.POST("", walletHandler.Create) // POST   /api/wallets
+
+		walletOwnership := wallets.Group("", walletOwnershipMiddleware.Check)
+		{
+			walletOwnership.GET("/:id/balance", walletHandler.GetBalanceByID) // GET    /api/wallets/:id/balance
+			walletOwnership.POST("/:id/deposit", walletHandler.Deposit)       // POST   /api/wallets/:id/deposit
+			walletOwnership.POST("/:id/withdraw", walletHandler.Withdraw)     // POST   /api/wallets/:id/withdraw
+		}
 	}
 }

@@ -76,3 +76,16 @@ func (u *WalletUsecase) Withdraw(ctx context.Context, id int64, command WalletWi
 	}
 	return wallet, nil
 }
+
+func (u *WalletUsecase) IsOwnedBy(ctx context.Context, walletID, userID int64) (bool, error) {
+	wallet, err := u.walletRepository.GetById(ctx, walletID)
+	if err != nil {
+		return false, err
+	}
+
+	if wallet.UserID != userID {
+		return false, nil
+	}
+
+	return true, nil
+}
