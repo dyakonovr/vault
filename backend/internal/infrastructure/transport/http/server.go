@@ -6,6 +6,7 @@ import (
 	nethttp "net/http"
 	"time"
 	"vault/internal/infrastructure/transport/http/auth"
+	httpcommon "vault/internal/infrastructure/transport/http/common"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v5"
@@ -38,6 +39,8 @@ func (s *Server) InitRoutes(authHandler *auth.AuthHandler) {
 	s.instance.GET("/health", func(c *echo.Context) error {
 		return c.String(nethttp.StatusOK, "ok")
 	})
+
+	s.instance.Use(httpcommon.RequestIDMiddleware)
 
 	authGroup := s.instance.Group("/auth", nil)
 
