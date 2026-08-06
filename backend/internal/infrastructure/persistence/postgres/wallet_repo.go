@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"time"
 	"vault/internal/domain"
 	"vault/internal/infrastructure/persistence"
 
@@ -37,11 +36,11 @@ func (r *WalletRepository) GetById(ctx context.Context, id int64) (domain.Wallet
 	return mapWalletToDomain(wallet), nil
 }
 
-func (r *WalletRepository) GetByLogin(ctx context.Context, login string) (domain.Wallet, error) {
+func (r *WalletRepository) GetByUserId(ctx context.Context, userID int64) (domain.Wallet, error) {
 	var wallet WalletModel
 
 	query := r.db.WithContext(ctx).
-		Where("login = ?", login).
+		Where("user_id = ?", userID).
 		Take(&wallet)
 	if query.Error != nil {
 		return domain.Wallet{}, mapDbErrorToDomain(query.Error, walletDomainErrors, false)
@@ -60,6 +59,7 @@ func (r *WalletRepository) Create(ctx context.Context, wallet *domain.Wallet) er
 
 	wallet.ID = walletModel.ID
 	wallet.CreatedAt = walletModel.CreatedAt
+	wallet.UpdatedAt = walletModel.UpdatedAt
 
 	return nil
 }
@@ -69,8 +69,6 @@ func (r *WalletRepository) Update(ctx context.Context, wallet *domain.Wallet) er
 	if err := r.db.WithContext(ctx).Save(&walletModel).Error; err != nil {
 		return mapDbErrorToDomain(err, walletDomainErrors, false)
 	}
-
-	wallet.UpdatedAt = time.Now()
 
 	return nil
 }

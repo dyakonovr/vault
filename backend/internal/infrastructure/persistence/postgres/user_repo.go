@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"time"
 	userapp "vault/internal/application/user"
 	"vault/internal/domain"
 	"vault/internal/infrastructure/persistence"
@@ -93,6 +92,7 @@ func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 
 	user.ID = userModel.ID
 	user.CreatedAt = userModel.CreatedAt
+	user.UpdatedAt = userModel.UpdatedAt
 
 	return nil
 }
@@ -102,8 +102,6 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 	if err := r.db.WithContext(ctx).Save(&userModel).Error; err != nil {
 		return mapDbErrorToDomain(err, userDomainErrors, false)
 	}
-
-	user.UpdatedAt = time.Now()
 
 	return nil
 }

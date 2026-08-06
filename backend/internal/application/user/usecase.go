@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"errors"
+	"time"
 	"vault/internal/domain"
 	"vault/pkg/hash"
 )
@@ -30,13 +30,6 @@ func (u *UserUsecase) GetByLogin(ctx context.Context, login string) (domain.User
 }
 
 func (u *UserUsecase) Create(ctx context.Context, command CreateUserCommand) (domain.User, error) {
-	_, err := u.userRepo.GetByLogin(ctx, command.Login)
-	if err == nil {
-		return domain.User{}, domain.ErrUserAlreadyExists
-	} else if !errors.Is(err, domain.ErrUserNotFound) {
-		return domain.User{}, err
-	}
-	
 	passwordHash, err := hash.HashArgon2(command.Password)
 	if err != nil {
 		return domain.User{}, err
@@ -49,7 +42,7 @@ func (u *UserUsecase) Create(ctx context.Context, command CreateUserCommand) (do
 
 	if err := u.userRepo.Create(ctx, user); err != nil {
 		return domain.User{}, err
-	} 
+	}
 	return *user, nil
 }
 
@@ -73,13 +66,14 @@ func (u *UserUsecase) Update(ctx context.Context, id int64, command UpdateUserCo
 	}
 
 	user.PasswordHash = newPasswordHash
-	
+	user.UpdatedAt = time.Now()
+
 	if err := u.userRepo.Update(ctx, &user); err != nil {
 		return domain.User{}, err
-	} 
+	}
 	return user, nil
 }
 
-func (u *UserUsecase) Delete(ctx context.Context, id int64) (error) {
+func (u *UserUsecase) Delete(ctx context.Context, id int64) error {
 	return u.userRepo.Delete(ctx, id)
 }
