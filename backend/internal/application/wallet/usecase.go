@@ -35,7 +35,7 @@ func (u *WalletUsecase) Create(ctx context.Context, command CreateWalletCommand)
 	return *wallet, nil
 }
 
-func (u *WalletUsecase) Deposit(ctx context.Context, id int64, command UpdateWalletCommand) (domain.Wallet, error) {
+func (u *WalletUsecase) Deposit(ctx context.Context, id int64, command WalletDepositCommand) (domain.Wallet, error) {
 	wallet, err := u.walletRepository.GetById(ctx, id)
 	if err != nil {
 		return domain.Wallet{}, err
@@ -56,7 +56,7 @@ func (u *WalletUsecase) Deposit(ctx context.Context, id int64, command UpdateWal
 	return wallet, nil
 }
 
-func (u *WalletUsecase) Withdraw(ctx context.Context, id int64, command UpdateWalletCommand) (domain.Wallet, error) {
+func (u *WalletUsecase) Withdraw(ctx context.Context, id int64, command WalletWithdrawCommand) (domain.Wallet, error) {
 	wallet, err := u.walletRepository.GetById(ctx, id)
 	if err != nil {
 		return domain.Wallet{}, err

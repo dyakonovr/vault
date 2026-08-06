@@ -1,11 +1,15 @@
 package wallet
 
 type CreateWalletCommand struct {
-	UserID  int64
-	Balance int64
+	UserID int64
 }
 
-type UpdateWalletCommand struct {
+type WalletDepositCommand struct {
+	UserID int64
+	Amount int64
+}
+
+type WalletWithdrawCommand struct {
 	UserID int64
 	Amount int64
 }

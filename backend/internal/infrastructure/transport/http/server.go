@@ -6,7 +6,9 @@ import (
 	nethttp "net/http"
 	"time"
 	"vault/internal/infrastructure/transport/http/auth"
+	"vault/internal/infrastructure/transport/http/common"
 	httpcommon "vault/internal/infrastructure/transport/http/common"
+	"vault/internal/infrastructure/transport/http/wallet"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v5"
@@ -35,17 +37,37 @@ func (s *Server) Start(ctx context.Context) error {
 	return sc.Start(ctx, s.instance)
 }
 
-func (s *Server) InitRoutes(authHandler *auth.AuthHandler) {
+func (s *Server) InitRoutes(
+	authMiddleware common.AuthMiddleware,
+	authHandler *auth.AuthHandler,
+	walletHandler *wallet.WalletHandler,
+) {
 	s.instance.GET("/health", func(c *echo.Context) error {
 		return c.String(nethttp.StatusOK, "ok")
 	})
 
 	s.instance.Use(httpcommon.RequestIDMiddleware)
 
-	authGroup := s.instance.Group("/auth", nil)
+	// AUTH
+	authGroup := s.instance.Group("/api/auth")
+	{
+		authGroup.POST("/login", authHandler.Login)
+		authGroup.POST("/register", authHandler.Register)
+		authGroup.POST("/logout", authHandler.Logout)
 
-	authGroup.POST("/login", authHandler.Login)
-	authGroup.POST("/register", authHandler.Register)
-	authGroup.POST("/logout", authHandler.Logout)
-	authGroup.GET("/me", authHandler.Me)
+		// защищённые auth-роуты
+		authProtected := authGroup.Group("", authMiddleware.RequireAuth)
+		{
+			authProtected.GET("/me", authHandler.Me)
+		}
+	}
+
+	// WALLETS
+	wallets := s.instance.Group("/api/wallets", authMiddleware.RequireAuth)
+	{
+		wallets.POST("", walletHandler.Create)                    // POST   /api/wallets
+		wallets.GET("/:id/balance", walletHandler.GetBalanceByID) // GET    /api/wallets/:id/balance
+		wallets.POST("/:id/deposit", walletHandler.Deposit)       // POST   /api/wallets/:id/deposit
+		wallets.POST("/:id/withdraw", walletHandler.Withdraw)     // POST   /api/wallets/:id/withdraw
+	}
 }

@@ -20,10 +20,7 @@ func New(authService authService) *AuthHandler {
 
 func (h *AuthHandler) Login(ctx *echo.Context) error {
 	var req LoginRequest
-	if err := ctx.Bind(&req); err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, err)
-	}
-	if err := ctx.Validate(&req); err != nil {
+	if err := httpcommon.ParseAndValidateRequestBody(ctx, &req); err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
@@ -32,7 +29,7 @@ func (h *AuthHandler) Login(ctx *echo.Context) error {
 		Password: req.Password,
 	})
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, authDomainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
 	}
 
 	h.setSessionCookie(ctx, session)
@@ -42,7 +39,7 @@ func (h *AuthHandler) Login(ctx *echo.Context) error {
 
 func (h *AuthHandler) Register(ctx *echo.Context) error {
 	var req RegisterRequest
-	if err := ctx.Bind(&req); err != nil {
+	if err := httpcommon.ParseAndValidateRequestBody(ctx, &req); err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
@@ -51,7 +48,7 @@ func (h *AuthHandler) Register(ctx *echo.Context) error {
 		Password: req.Password,
 	})
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, authDomainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, nethttp.StatusNoContent, nil)
@@ -65,7 +62,7 @@ func (h *AuthHandler) Me(ctx *echo.Context) error {
 
 	user, err := h.authService.Me(ctx.Request().Context(), sessionCookie.Value)
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, authDomainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, nethttp.StatusOK, NewUserResponse(user))
@@ -79,7 +76,7 @@ func (h *AuthHandler) Logout(ctx *echo.Context) error {
 
 	err = h.authService.Logout(ctx.Request().Context(), sessionCookie.Value)
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, authDomainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, nethttp.StatusNoContent, nil)
@@ -87,7 +84,7 @@ func (h *AuthHandler) Logout(ctx *echo.Context) error {
 
 func (h *AuthHandler) setSessionCookie(ctx *echo.Context, session authapp.Session) {
 	cookie := nethttp.Cookie{
-		Name:     "session_id",
+		Name:     httpcommon.SessionCookieName,
 		Value:    session.Value,
 		Path:     "/",
 		HttpOnly: true,

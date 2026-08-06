@@ -9,7 +9,7 @@ var (
 	ErrWalletNotFound      = errors.New("wallet not found")
 	ErrWalletAlreadyExists = errors.New("wallet already exists")
 	ErrInvalidAmount       = errors.New("amount must be greater than zero")
-	ErrInsufficientFunds   = errors.New("wallet balance can't be negative")
+	ErrInsufficientFunds   = errors.New("insufficient funds on the balance")
 )
 
 type Wallet struct {
