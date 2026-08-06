@@ -15,50 +15,69 @@
 ### Структура пакетов (актуальная)
 
 ```
-cmd/app/main.go
+cmd/
+  app/
+    main.go               # точка входа: инициализация БД, репозиториев, use case'ов, запуск HTTP-сервера
 internal/
   domain/
-    user.go
-    wallet.go           # (позже)
-    transaction.go      # (позже)
-    errors.go
+    user.go               # сущность User, конструктор, инварианты
+    wallet.go             # сущность Wallet, методы Deposit/Withdraw, инварианты баланса
+    errors.go             # общие доменные ошибки (ErrUserNotFound, ErrWalletNotFound и др.)
   application/
-    user/
-      commands.go       # DTO для use case'ов
-      repository.go     # интерфейс UserRepository
-      usecase.go
     auth/
-      commands.go
-      contracts.go      # интерфейсы authService, sessionStore
-      usecase.go
+      commands.go         # DTO: LoginCommand, RegisterCommand
+      contracts.go        # интерфейсы authService, sessionStore
+      usecase.go          # AuthUsecase: Login, Register, Me, Logout
+    user/
+      commands.go         # DTO: CreateUserCommand, UpdateUserCommand, ListUsersParams
+      contracts.go        # интерфейс UserRepository
+      usecase.go          # UserUsecase: Create, GetByID, Update, List, Delete
+    wallet/
+      commands.go         # DTO: CreateWalletCommand, UpdateWalletCommand
+      contracts.go        # интерфейс WalletRepository
+      errors.go           # ошибки уровня приложения (ErrWalletAccessDenied)
+      usecase.go          # WalletUsecase: Create, Deposit, Withdraw, GetByID
   infrastructure/
     persistence/
       postgres/
-        models.go       # GORM-модели
-        user_repo.go    # реализация UserRepository
-        db.go           # подключение к БД, миграции
-        errors.go       # mapGormError, DB-ошибки
+        models.go         # GORM-модели (UserModel, WalletModel, TransactionModel)
+        user_repo.go      # реализация UserRepository
+        wallet_repo.go    # реализация WalletRepository
+        db.go             # подключение к БД, запуск golang-migrate
+        errors.go         # mapGormError, базовые ошибки БД (ErrDBNoRows, ErrDBUniqueViolation...)
+    session/
+      memory_store.go     # in-memory реализация SessionStore
     transport/
       http/
         common/
-          errors.go     # HTTP-ошибки, маппинг домен → статус
-          response.go   # WriteJSON, WriteError
-          response_models.go # PaginatedResponse и пр.
-          utils.go      # ReadSessionID, GetRequestID
+          errors.go       # HttpError, MapDomainError → HTTP-статусы
+          response.go     # HTTPSuccessResponse, HTTPErrorResponse
+          response_models.go # PaginatedResponse, ErrorResponse
+          utils.go        # ReadSessionID, GetRequestID, куки
         auth/
-          handler.go    # Echo-хендлеры Auth
-          contracts.go  # интерфейс authService (зависимость)
-          request.go    # DTO запросов
-          response.go   # DTO ответов
-        server.go       # инициализация Echo, регистрация роутов
-        middleware.go   # RequestID, auth (будущая)
+          handler.go      # Echo-хендлеры: /auth/login, /auth/register, /auth/me, /auth/logout
+          contracts.go    # интерфейс authService (зависимость хендлера)
+          request.go      # LoginRequest, RegisterRequest
+          response.go     # UserResponse
+        wallet/
+          handler.go      # Echo-хендлеры: /api/wallets, /api/wallets/:id/balance, /deposit, /withdraw
+          contracts.go    # интерфейс walletService
+          request.go      # CreateWalletRequest, UpdateWalletRequest
+          response.go     # WalletResponse
+        server.go         # инициализация Echo, группы роутов, gracefull shutdown
+        middleware.go     # RequestIDMiddleware (request_id в контекст и заголовок)
 pkg/
-  contextkeys/
-    contextkeys.go      # ключи для context.WithValue
+  ctxkeys/
+    ctxkeys.go            # ключи контекста (RequestIDKey и др.)
   logger/
-    logger.go           # logrus-обёртка с FromContext
+    logger.go             # logrus-обёртка, FromContext(ctx) → *Entry с request_id
   hash/
-    argon2.go           # HashArgon2, CompareArgon2
+    argon2.go             # HashArgon2, CompareArgon2
+  crypto/
+    utils.go              # GenerateSessionID (crypto/rand)
+migrations/
+  000001_init.up.sql
+  000001_init.down.sql
 ```
 
 ## Ключевые архитектурные решения и заметки
