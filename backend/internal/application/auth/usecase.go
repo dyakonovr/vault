@@ -23,27 +23,27 @@ func New(userService userService, sessionStore sessionStore, sessionTtl time.Dur
 	}
 }
 
-func (u *AuthUsecase) Login(ctx context.Context, command LoginCommand) (string, error) {
+func (u *AuthUsecase) Login(ctx context.Context, command LoginCommand) (Session, error) {
 	user, err := u.userService.GetByLogin(ctx, command.Login)
 	if err != nil {
-		return "", err
+		return Session{}, err
 	}
 
 	isPasswordsEqual, err := hash.CompareArgon2(command.Password, user.PasswordHash)
 	if err != nil {
-		return "", err
+		return Session{}, err
 	}
 
 	if !isPasswordsEqual {
-		return "", domain.ErrInvalidLoginOrPassword
+		return Session{}, domain.ErrInvalidLoginOrPassword
 	}
 
 	sessionID, err := u.sessionStore.Create(ctx, user.ID, u.sessionTtl)
 	if err != nil {
-		return "", err
+		return Session{}, err
 	}
 
-	return sessionID, nil
+	return Session{Value: sessionID, Ttl: u.sessionTtl}, nil
 }
 
 func (u *AuthUsecase) Register(ctx context.Context, command RegisterCommand) error {
@@ -72,6 +72,5 @@ func (u *AuthUsecase) Me(ctx context.Context, sessionID string) (domain.User, er
 }
 
 func (u *AuthUsecase) Logout(ctx context.Context, sessionID string) error {
-	u.sessionStore.Delete(ctx, sessionID)
-	return nil
+	return u.sessionStore.Delete(ctx, sessionID)
 }
