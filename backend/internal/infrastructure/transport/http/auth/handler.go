@@ -18,6 +18,18 @@ func New(authService authService) *AuthHandler {
 	}
 }
 
+// Login godoc
+// @Summary      Вход в систему
+// @Description  Аутентификация пользователя по логину и паролю. При успешном входе устанавливается сессионная cookie.
+// @Tags         Аутентификация
+// @Accept       json
+// @Produce      json
+// @Param        body body     LoginRequest true  "Данные для входа"
+// @Success      204  {string} string         "Вход выполнен успешно"
+// @Failure      400  {object} common.ErrorResponse "Ошибка валидации"
+// @Failure      401  {object} common.ErrorResponse "Неверный логин или пароль"
+// @Failure      500  {object} common.ErrorResponse "Внутренняя ошибка сервера"
+// @Router       /api/auth/login [post]
 func (h *AuthHandler) Login(ctx *echo.Context) error {
 	var req LoginRequest
 	if err := httpcommon.ParseAndValidateRequestBody(ctx, &req); err != nil {
@@ -37,6 +49,18 @@ func (h *AuthHandler) Login(ctx *echo.Context) error {
 	return httpcommon.HTTPSuccessResponse(ctx, nethttp.StatusNoContent, nil)
 }
 
+// Register godoc
+// @Summary      Регистрация нового пользователя
+// @Description  Создание новой учётной записи с логином и паролем.
+// @Tags         Аутентификация
+// @Accept       json
+// @Produce      json
+// @Param        body body     RegisterRequest true  "Данные для регистрации"
+// @Success      204  {string} string          "Регистрация выполнена успешно"
+// @Failure      400  {object} common.ErrorResponse "Ошибка валидации"
+// @Failure      409  {object} common.ErrorResponse "Пользователь уже существует"
+// @Failure      500  {object} common.ErrorResponse "Внутренняя ошибка сервера"
+// @Router       /api/auth/register [post]
 func (h *AuthHandler) Register(ctx *echo.Context) error {
 	var req RegisterRequest
 	if err := httpcommon.ParseAndValidateRequestBody(ctx, &req); err != nil {
@@ -54,6 +78,17 @@ func (h *AuthHandler) Register(ctx *echo.Context) error {
 	return httpcommon.HTTPSuccessResponse(ctx, nethttp.StatusNoContent, nil)
 }
 
+// Me godoc
+// @Summary      Получение данных текущего пользователя
+// @Description  Возвращает информацию о пользователе по сессионной cookie.
+// @Tags         Аутентификация
+// @Produce      json
+// @Security     session
+// @Success      200 {object} UserResponse    "Данные пользователя"
+// @Failure      401 {object} common.ErrorResponse "Сессия не найдена или истекла"
+// @Failure      404 {object} common.ErrorResponse "Пользователь не найден"
+// @Failure      500 {object} common.ErrorResponse "Внутренняя ошибка сервера"
+// @Router       /api/auth/me [get]
 func (h *AuthHandler) Me(ctx *echo.Context) error {
 	sessionCookie, err := httpcommon.ReadSessionID(ctx)
 	if err != nil {
@@ -68,6 +103,16 @@ func (h *AuthHandler) Me(ctx *echo.Context) error {
 	return httpcommon.HTTPSuccessResponse(ctx, nethttp.StatusOK, NewUserResponse(user))
 }
 
+// Logout godoc
+// @Summary      Выход из системы
+// @Description  Удаление текущей сессии. Сессионная cookie аннулируется.
+// @Tags         Аутентификация
+// @Produce      json
+// @Security     session
+// @Success      204 {string} string         "Выход выполнен успешно"
+// @Failure      401 {object} common.ErrorResponse "Сессия не найдена"
+// @Failure      500 {object} common.ErrorResponse "Внутренняя ошибка сервера"
+// @Router       /api/auth/logout [post]
 func (h *AuthHandler) Logout(ctx *echo.Context) error {
 	sessionCookie, err := httpcommon.ReadSessionID(ctx)
 	if err != nil {

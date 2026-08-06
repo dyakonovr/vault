@@ -1,0 +1,377 @@
+basePath: /
+definitions:
+  auth.LoginRequest:
+    properties:
+      login:
+        minLength: 3
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  auth.RegisterRequest:
+    properties:
+      login:
+        minLength: 3
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  auth.UserResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      login:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  common.ErrorResponse:
+    properties:
+      code:
+        type: string
+      errors:
+        $ref: '#/definitions/common.ValidationErrors'
+      message:
+        type: string
+      request_id:
+        type: string
+    type: object
+  common.ValidationError:
+    properties:
+      code:
+        description: Код ошибки, например FIELD_REQUIRED
+        type: string
+      param:
+        description: Параметр (для min/max), например "8"
+        type: string
+    type: object
+  common.ValidationErrors:
+    additionalProperties:
+      items:
+        $ref: '#/definitions/common.ValidationError'
+      type: array
+    type: object
+  wallet.BalanceResponse:
+    properties:
+      balance:
+        type: integer
+    type: object
+  wallet.DepositRequest:
+    properties:
+      amount:
+        minimum: 1
+        type: integer
+    required:
+    - amount
+    type: object
+  wallet.WalletResponse:
+    properties:
+      balance:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  wallet.WithdrawRequest:
+    properties:
+      amount:
+        minimum: 1
+        type: integer
+    required:
+    - amount
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для управления кошельками и аутентификации пользователей.
+  title: Vault API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентификация пользователя по логину и паролю. При успешном входе
+        устанавливается сессионная cookie.
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Вход выполнен успешно
+          schema:
+            type: string
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "401":
+          description: Неверный логин или пароль
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      summary: Вход в систему
+      tags:
+      - Аутентификация
+  /api/auth/logout:
+    post:
+      description: Удаление текущей сессии. Сессионная cookie аннулируется.
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Выход выполнен успешно
+          schema:
+            type: string
+        "401":
+          description: Сессия не найдена
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      security:
+      - session: []
+      summary: Выход из системы
+      tags:
+      - Аутентификация
+  /api/auth/me:
+    get:
+      description: Возвращает информацию о пользователе по сессионной cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные пользователя
+          schema:
+            $ref: '#/definitions/auth.UserResponse'
+        "401":
+          description: Сессия не найдена или истекла
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      security:
+      - session: []
+      summary: Получение данных текущего пользователя
+      tags:
+      - Аутентификация
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создание новой учётной записи с логином и паролем.
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Регистрация выполнена успешно
+          schema:
+            type: string
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "409":
+          description: Пользователь уже существует
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      summary: Регистрация нового пользователя
+      tags:
+      - Аутентификация
+  /api/wallets:
+    post:
+      description: Создаёт новый кошелёк для текущего пользователя. Баланс нового
+        кошелька равен 0.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Созданный кошелёк
+          schema:
+            $ref: '#/definitions/wallet.WalletResponse'
+        "409":
+          description: Кошелёк уже существует
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      security:
+      - session: []
+      summary: Создание нового кошелька
+      tags:
+      - Кошельки
+  /api/wallets/{id}/balance:
+    get:
+      description: Возвращает текущий баланс кошелька по его идентификатору.
+      parameters:
+      - description: ID кошелька
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Баланс кошелька
+          schema:
+            $ref: '#/definitions/wallet.BalanceResponse'
+        "400":
+          description: Некорректный идентификатор
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "404":
+          description: Кошелёк не найден
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      security:
+      - session: []
+      summary: Получение баланса кошелька
+      tags:
+      - Кошельки
+  /api/wallets/{id}/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Пополняет баланс кошелька на указанную сумму.
+      parameters:
+      - description: ID кошелька
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Сумма пополнения
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.DepositRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновлённый баланс
+          schema:
+            $ref: '#/definitions/wallet.BalanceResponse'
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "404":
+          description: Кошелёк не найден
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "409":
+          description: Кошелёк уже существует
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      security:
+      - session: []
+      summary: Пополнение кошелька
+      tags:
+      - Кошельки
+  /api/wallets/{id}/withdraw:
+    post:
+      consumes:
+      - application/json
+      description: Списывает указанную сумму с баланса кошелька. Если средств недостаточно,
+        возвращается ошибка.
+      parameters:
+      - description: ID кошелька
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Сумма списания
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.WithdrawRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновлённый баланс
+          schema:
+            $ref: '#/definitions/wallet.BalanceResponse'
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "404":
+          description: Кошелёк не найден
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "409":
+          description: Недостаточно средств на балансе
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      security:
+      - session: []
+      summary: Списание средств с кошелька
+      tags:
+      - Кошельки
+schemes:
+- http
+securityDefinitions:
+  session:
+    in: cookie
+    name: session_id
+    type: apiKey
+swagger: "2.0"

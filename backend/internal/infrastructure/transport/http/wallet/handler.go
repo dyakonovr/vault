@@ -18,6 +18,18 @@ func New(walletService walletService) *WalletHandler {
 	}
 }
 
+// GetBalanceByID godoc
+// @Summary      Получение баланса кошелька
+// @Description  Возвращает текущий баланс кошелька по его идентификатору.
+// @Tags         Кошельки
+// @Produce      json
+// @Security     session
+// @Param        id   path     int true "ID кошелька"
+// @Success      200  {object} BalanceResponse "Баланс кошелька"
+// @Failure      400  {object} common.ErrorResponse "Некорректный идентификатор"
+// @Failure      404  {object} common.ErrorResponse "Кошелёк не найден"
+// @Failure      500  {object} common.ErrorResponse "Внутренняя ошибка сервера"
+// @Router       /api/wallets/{id}/balance [get]
 func (h *WalletHandler) GetBalanceByID(ctx *echo.Context) error {
 	// TODO: Middleware с проверкой на владельца
 	id, err := httpcommon.GetIDPathParam(ctx)
@@ -33,6 +45,16 @@ func (h *WalletHandler) GetBalanceByID(ctx *echo.Context) error {
 	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, NewBalanceResponse(wallet.Balance))
 }
 
+// Create godoc
+// @Summary      Создание нового кошелька
+// @Description  Создаёт новый кошелёк для текущего пользователя. Баланс нового кошелька равен 0.
+// @Tags         Кошельки
+// @Produce      json
+// @Security     session
+// @Success      201  {object} WalletResponse "Созданный кошелёк"
+// @Failure      409  {object} common.ErrorResponse "Кошелёк уже существует"
+// @Failure      500  {object} common.ErrorResponse "Внутренняя ошибка сервера"
+// @Router       /api/wallets [post]
 func (h *WalletHandler) Create(ctx *echo.Context) error {
 	// TODO: заменить на получение UserID из контекста
 	userID, err := httpcommon.GetIDPathParam(ctx)
@@ -50,6 +72,21 @@ func (h *WalletHandler) Create(ctx *echo.Context) error {
 	return httpcommon.HTTPSuccessResponse(ctx, http.StatusCreated, NewWalletResponse(wallet))
 }
 
+// Deposit godoc
+// @Summary      Пополнение кошелька
+// @Description  Пополняет баланс кошелька на указанную сумму.
+// @Tags         Кошельки
+// @Accept       json
+// @Produce      json
+// @Security     session
+// @Param        id   path     int            true "ID кошелька"
+// @Param        body body     DepositRequest true  "Сумма пополнения"
+// @Success      200  {object} BalanceResponse "Обновлённый баланс"
+// @Failure      400  {object} common.ErrorResponse "Ошибка валидации"
+// @Failure      404  {object} common.ErrorResponse "Кошелёк не найден"
+// @Failure      409  {object} common.ErrorResponse "Кошелёк уже существует"
+// @Failure      500  {object} common.ErrorResponse "Внутренняя ошибка сервера"
+// @Router       /api/wallets/{id}/deposit [post]
 func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 	var req DepositRequest
 	if err := httpcommon.ParseAndValidateRequestBody(ctx, &req); err != nil {
@@ -78,6 +115,21 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, NewBalanceResponse(wallet.Balance))
 }
 
+// Withdraw godoc
+// @Summary      Списание средств с кошелька
+// @Description  Списывает указанную сумму с баланса кошелька. Если средств недостаточно, возвращается ошибка.
+// @Tags         Кошельки
+// @Accept       json
+// @Produce      json
+// @Security     session
+// @Param        id   path     int              true "ID кошелька"
+// @Param        body body     WithdrawRequest  true  "Сумма списания"
+// @Success      200  {object} BalanceResponse   "Обновлённый баланс"
+// @Failure      400  {object} common.ErrorResponse   "Ошибка валидации"
+// @Failure      404  {object} common.ErrorResponse   "Кошелёк не найден"
+// @Failure      409  {object} common.ErrorResponse   "Недостаточно средств на балансе"
+// @Failure      500  {object} common.ErrorResponse   "Внутренняя ошибка сервера"
+// @Router       /api/wallets/{id}/withdraw [post]
 func (h *WalletHandler) Withdraw(ctx *echo.Context) error {
 	var req WithdrawRequest
 	if err := httpcommon.ParseAndValidateRequestBody(ctx, &req); err != nil {
