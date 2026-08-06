@@ -1,6 +1,14 @@
 package domain
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+var (
+	ErrWalletNotFound      = errors.New("wallet not found")
+	ErrWalletAlreadyExists = errors.New("wallet already exists")
+)
 
 type Wallet struct {
 	ID        int64
