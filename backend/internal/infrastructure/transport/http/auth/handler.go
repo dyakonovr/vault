@@ -31,9 +31,8 @@ func (h *AuthHandler) Login(ctx *echo.Context) error {
 		Login:    req.Login,
 		Password: req.Password,
 	})
-
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, err)
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, authDomainToHttpErrors))
 	}
 
 	h.setSessionCookie(ctx, session)
@@ -51,9 +50,8 @@ func (h *AuthHandler) Register(ctx *echo.Context) error {
 		Login:    req.Login,
 		Password: req.Password,
 	})
-
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, err)
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, authDomainToHttpErrors))
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, nethttp.StatusNoContent, nil)
@@ -66,9 +64,8 @@ func (h *AuthHandler) Me(ctx *echo.Context) error {
 	}
 
 	user, err := h.authService.Me(ctx.Request().Context(), sessionCookie.Value)
-
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, err)
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, authDomainToHttpErrors))
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, nethttp.StatusOK, NewUserResponse(user))
@@ -81,9 +78,8 @@ func (h *AuthHandler) Logout(ctx *echo.Context) error {
 	}
 
 	err = h.authService.Logout(ctx.Request().Context(), sessionCookie.Value)
-
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, err)
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, authDomainToHttpErrors))
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, nethttp.StatusNoContent, nil)
