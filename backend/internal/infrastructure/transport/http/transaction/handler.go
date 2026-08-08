@@ -51,7 +51,7 @@ func (h *TransactionHandler) List(ctx *echo.Context) error {
 		},
 	})
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
 	list := make([]TransactionResponse, len(transactions))
@@ -88,7 +88,7 @@ func (h *TransactionHandler) GetByID(ctx *echo.Context) error {
 		UserID:   userID,
 	})
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, NewTransactionResponse(transaction))

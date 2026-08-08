@@ -52,13 +52,15 @@ func HTTPErrorResponse(ctx *echo.Context, err error) error {
 		Message: ErrInternalServerError.ClientMessage,
 	}
 
-	if errors.As(err, &httpError) {
+	mappedErr := mapDomainErrorToHttp(err)
+
+	if errors.As(mappedErr, &httpError) {
 		statusCode = httpError.StatusCode
 		data = ErrorResponse{
 			Code:    httpError.Code,
 			Message: httpError.ClientMessage,
 		}
-	} else if errors.As(err, &validationError) {
+	} else if errors.As(mappedErr, &validationError) {
 		statusCode = nethttp.StatusUnprocessableEntity
 		data = ErrorResponse{
 			Code:    ErrValidation.Code,
@@ -67,7 +69,7 @@ func HTTPErrorResponse(ctx *echo.Context, err error) error {
 		}
 	} else {
 		// Внутренняя ошибка: логируем с деталями
-		logger.FromContext(ctx.Request().Context()).WithError(err).Error("internal server error")
+		logger.FromContext(ctx.Request().Context()).WithError(mappedErr).Error("internal server error")
 	}
 
 	requestID, ok := GetRequestIDFromContext(ctx.Request().Context())

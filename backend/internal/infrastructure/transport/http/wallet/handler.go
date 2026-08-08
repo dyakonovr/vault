@@ -43,7 +43,7 @@ func (h *WalletHandler) GetBalanceByID(ctx *echo.Context) error {
 
 	wallet, err := h.walletService.GetById(ctx.Request().Context(), id, userID)
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, NewBalanceResponse(wallet.Balance))
@@ -69,7 +69,7 @@ func (h *WalletHandler) Create(ctx *echo.Context) error {
 		UserID: userID,
 	})
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, http.StatusCreated, NewWalletResponse(wallet))
@@ -111,7 +111,7 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		Amount: req.Amount,
 	})
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, NewBalanceResponse(wallet.Balance))
@@ -153,7 +153,7 @@ func (h *WalletHandler) Withdraw(ctx *echo.Context) error {
 		Amount: req.Amount,
 	})
 	if err != nil {
-		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
+		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
 	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, NewBalanceResponse(wallet.Balance))
