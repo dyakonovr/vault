@@ -15,7 +15,11 @@ func New(walletRepository walletRepository) *WalletUsecase {
 	}
 }
 
-func (u *WalletUsecase) GetById(ctx context.Context, id int64) (domain.Wallet, error) {
+func (u *WalletUsecase) GetById(ctx context.Context, id, userID int64) (domain.Wallet, error) {
+	if err := u.IsOwnedBy(ctx, id, userID); err != nil {
+		return domain.Wallet{}, err
+	}
+
 	return u.walletRepository.GetById(ctx, id)
 }
 
@@ -36,13 +40,13 @@ func (u *WalletUsecase) Create(ctx context.Context, command CreateWalletCommand)
 }
 
 func (u *WalletUsecase) Deposit(ctx context.Context, id int64, command WalletDepositCommand) (domain.Wallet, error) {
-	wallet, err := u.walletRepository.GetById(ctx, id)
-	if err != nil {
+	if err := u.IsOwnedBy(ctx, id, command.UserID); err != nil {
 		return domain.Wallet{}, err
 	}
 
-	if wallet.UserID != command.UserID {
-		return domain.Wallet{}, ErrWalletAccessDenied
+	wallet, err := u.walletRepository.GetById(ctx, id)
+	if err != nil {
+		return domain.Wallet{}, err
 	}
 
 	err = wallet.Deposit(command.Amount)
@@ -57,13 +61,13 @@ func (u *WalletUsecase) Deposit(ctx context.Context, id int64, command WalletDep
 }
 
 func (u *WalletUsecase) Withdraw(ctx context.Context, id int64, command WalletWithdrawCommand) (domain.Wallet, error) {
-	wallet, err := u.walletRepository.GetById(ctx, id)
-	if err != nil {
+	if err := u.IsOwnedBy(ctx, id, command.UserID); err != nil {
 		return domain.Wallet{}, err
 	}
 
-	if wallet.UserID != command.UserID {
-		return domain.Wallet{}, ErrWalletAccessDenied
+	wallet, err := u.walletRepository.GetById(ctx, id)
+	if err != nil {
+		return domain.Wallet{}, err
 	}
 
 	err = wallet.Withdraw(command.Amount)
@@ -77,15 +81,15 @@ func (u *WalletUsecase) Withdraw(ctx context.Context, id int64, command WalletWi
 	return wallet, nil
 }
 
-func (u *WalletUsecase) IsOwnedBy(ctx context.Context, walletID, userID int64) (bool, error) {
+func (u *WalletUsecase) IsOwnedBy(ctx context.Context, walletID, userID int64) error {
 	wallet, err := u.walletRepository.GetById(ctx, walletID)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if wallet.UserID != userID {
-		return false, nil
+		return ErrWalletAccessDenied
 	}
 
-	return true, nil
+	return nil
 }

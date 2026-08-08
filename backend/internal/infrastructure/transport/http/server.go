@@ -8,6 +8,7 @@ import (
 	"vault/internal/infrastructure/transport/http/auth"
 	"vault/internal/infrastructure/transport/http/common"
 	httpcommon "vault/internal/infrastructure/transport/http/common"
+	"vault/internal/infrastructure/transport/http/transaction"
 	"vault/internal/infrastructure/transport/http/wallet"
 
 	"github.com/go-playground/validator/v10"
@@ -42,6 +43,7 @@ func (s *Server) InitRoutes(
 	walletOwnershipMiddleware *common.WalletOwnershipMiddleware,
 	authHandler *auth.AuthHandler,
 	walletHandler *wallet.WalletHandler,
+	transactionHandler *transaction.TransactionHandler,
 ) {
 	s.instance.GET("/health", func(c *echo.Context) error {
 		return c.String(nethttp.StatusOK, "ok")
@@ -75,6 +77,11 @@ func (s *Server) InitRoutes(
 				walletOwnership.GET("/:id/balance", walletHandler.GetBalanceByID) // GET    /api/wallets/:id/balance
 				walletOwnership.POST("/:id/deposit", walletHandler.Deposit)       // POST   /api/wallets/:id/deposit
 				walletOwnership.POST("/:id/withdraw", walletHandler.Withdraw)     // POST   /api/wallets/:id/withdraw
+
+				{
+					walletOwnership.GET("/:walletId/transactions", transactionHandler.List)        //  GET /api/wallets/:walletId/transactions
+					walletOwnership.GET("/:walletId/transactions/:id", transactionHandler.GetByID) //  GET /api/wallets/:walletId/transactions/:id
+				}
 			}
 		}
 	}

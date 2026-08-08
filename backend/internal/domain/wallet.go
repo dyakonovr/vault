@@ -8,7 +8,7 @@ import (
 var (
 	ErrWalletNotFound      = errors.New("wallet not found")
 	ErrWalletAlreadyExists = errors.New("wallet already exists")
-	ErrInvalidAmount       = errors.New("amount must be greater than zero")
+	ErrWalletInvalidAmount = errors.New("amount must be greater than zero")
 	ErrInsufficientFunds   = errors.New("insufficient funds on the balance")
 )
 
@@ -30,7 +30,7 @@ func NewWallet(userID int64) (*Wallet, error) {
 // Начисление денег на баланс
 func (w *Wallet) Deposit(amount int64) error {
 	if amount <= 0 {
-		return ErrInvalidAmount
+		return ErrWalletInvalidAmount
 	}
 
 	w.Balance += amount
@@ -41,7 +41,7 @@ func (w *Wallet) Deposit(amount int64) error {
 // Списание денег с баланса
 func (w *Wallet) Withdraw(amount int64) error {
 	if amount <= 0 {
-		return ErrInvalidAmount
+		return ErrWalletInvalidAmount
 	}
 
 	newBalance := w.Balance - amount

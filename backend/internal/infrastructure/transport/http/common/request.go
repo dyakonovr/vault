@@ -13,6 +13,10 @@ func ParseAndValidateRequestBody(ctx *echo.Context, req any) error {
 	return nil
 }
 
+func ParseAndValidateQueryParams(ctx *echo.Context, req any) error {
+	return ParseAndValidateRequestBody(ctx, req)
+}
+
 func GetStringPathParam(ctx *echo.Context, name string) string {
 	return ctx.Param(name)
 }

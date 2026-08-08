@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserModel struct {
@@ -25,7 +27,7 @@ type TransactionModel struct {
 	WalletID       int64     `gorm:"not null;index"`
 	Type           string    `gorm:"not null;size:20"`
 	Amount         int64     `gorm:"not null"`
-	IdempotencyKey string    `gorm:"not null;uniqueIndex;type:uuid"` // используем string, колонка uuid
+	IdempotencyKey uuid.UUID `gorm:"type:uuid;not null"`
 	Status         string    `gorm:"not null;size:20"`
 	CreatedAt      time.Time `gorm:"not null"`
 }

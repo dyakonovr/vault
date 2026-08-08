@@ -31,12 +31,17 @@ func New(walletService walletService) *WalletHandler {
 // @Failure      500  {object} common.ErrorResponse "Внутренняя ошибка сервера"
 // @Router       /api/wallets/{id}/balance [get]
 func (h *WalletHandler) GetBalanceByID(ctx *echo.Context) error {
+	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
+	if !ok {
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
+	}
+
 	id, err := httpcommon.GetIDPathParam(ctx)
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	wallet, err := h.walletService.GetById(ctx.Request().Context(), id)
+	wallet, err := h.walletService.GetById(ctx.Request().Context(), id, userID)
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.MapDomainErrorToHttp(err, domainToHttpErrors))
 	}

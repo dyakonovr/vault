@@ -9,6 +9,23 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
+func HTTPPaginatedResponse(ctx *echo.Context, statusCode int, body any, meta PaginatedResponseMeta) error {
+	if statusCode == nethttp.StatusNoContent {
+		return ctx.NoContent(statusCode)
+	}
+
+	requestID, ok := GetRequestIDFromContext(ctx.Request().Context())
+	if !ok {
+		return HTTPErrorResponse(ctx, ErrInternalServerError)
+	}
+
+	return ctx.JSON(statusCode, PaginatedResponse{
+		Data:      body,
+		Meta:      meta,
+		RequestID: requestID,
+	})
+}
+
 func HTTPSuccessResponse(ctx *echo.Context, statusCode int, body any) error {
 	if statusCode == nethttp.StatusNoContent {
 		return ctx.NoContent(statusCode)

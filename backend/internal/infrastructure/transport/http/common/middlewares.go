@@ -2,7 +2,6 @@ package common
 
 import (
 	"context"
-	walletapp "vault/internal/application/wallet"
 	"vault/pkg/ctxkeys"
 
 	"github.com/google/uuid"
@@ -53,7 +52,7 @@ func (m *AuthMiddleware) RequireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 // ---------- WALLET OWNER ----------
 
 type walletOwnershipChecker interface {
-	IsOwnedBy(ctx context.Context, walletID, userID int64) (bool, error)
+	IsOwnedBy(ctx context.Context, walletID, userID int64) error
 }
 
 type WalletOwnershipMiddleware struct {
@@ -78,12 +77,8 @@ func (m *WalletOwnershipMiddleware) Check(next echo.HandlerFunc) echo.HandlerFun
 			return HTTPErrorResponse(c, err)
 		}
 
-		isOwner, err := m.walletOwnershipChecker.IsOwnedBy(c.Request().Context(), walletID, userID)
-		if err != nil {
+		if err := m.walletOwnershipChecker.IsOwnedBy(c.Request().Context(), walletID, userID); err != nil {
 			return HTTPErrorResponse(c, err)
-		}
-		if !isOwner {
-			return HTTPErrorResponse(c, walletapp.ErrWalletAccessDenied)
 		}
 
 		return next(c)

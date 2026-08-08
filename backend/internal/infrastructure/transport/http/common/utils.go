@@ -20,6 +20,10 @@ func ReadSessionID(ctx *echo.Context) (*http.Cookie, error) {
 	return cookie, err
 }
 
-func CountTotalPages(total, perPage int) int {
-	return int(math.Ceil(float64(total) / float64(perPage)))
+func CountTotalPages(total, perPage int64) int64 {
+	return int64(math.Ceil(float64(total) / float64(perPage)))
+}
+
+func CountOffset(page, perPage int64) int64 {
+	return (page - 1) * perPage
 }
