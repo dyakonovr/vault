@@ -8,13 +8,14 @@ import (
 	"github.com/google/uuid"
 )
 
-// ------------ ERRORS ------------ 
+// ------------ ERRORS ------------
 
 var (
-	ErrTransactionNotFound      = errors.New("transaction not found")
-	ErrTransactionAlreadyExists = errors.New("transaction already exists")
-	ErrTransactionIncorrectType = errors.New("incorrect transaction type")
-	ErrTransactionInvalidAmount = errors.New("transaction amount must be greater than zero")
+	ErrTransactionNotFound          = errors.New("transaction not found")
+	ErrTransactionAlreadyExists     = errors.New("transaction already exists")
+	ErrTransactionIncorrectWalletID = errors.New("incorrect transaction walletID")
+	ErrTransactionIncorrectType     = errors.New("incorrect transaction type")
+	ErrTransactionInvalidAmount     = errors.New("transaction amount must be greater than zero")
 )
 
 // ------------ TRANSACTION TYPES ------------
@@ -29,7 +30,7 @@ const (
 )
 
 var (
-	availableTransactionTypes    = []TransactionType{TransactionTypeDeposit, TransactionTypeWithdrawal, TransactionTypeTransferOut, TransactionTypeTransferIn}
+	availableTransactionTypes = []TransactionType{TransactionTypeDeposit, TransactionTypeWithdrawal, TransactionTypeTransferOut, TransactionTypeTransferIn}
 )
 
 // ------------ TRANSACTION STATUSES ------------
@@ -59,6 +60,10 @@ type Transaction struct {
 }
 
 func NewTransaction(walletID int64, type_ string, amount int64, idempotencyKey uuid.UUID) (*Transaction, error) {
+	if walletID <= 0 {
+		return nil, ErrTransactionIncorrectWalletID
+	}
+
 	if !utils.Contains(availableTransactionTypes, TransactionType(type_)) {
 		return nil, ErrTransactionIncorrectType
 	}

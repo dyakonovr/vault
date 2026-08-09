@@ -6,10 +6,11 @@ import (
 )
 
 var (
-	ErrWalletNotFound      = errors.New("wallet not found")
-	ErrWalletAlreadyExists = errors.New("wallet already exists")
-	ErrWalletInvalidAmount = errors.New("amount must be greater than zero")
-	ErrInsufficientFunds   = errors.New("insufficient funds on the balance")
+	ErrWalletNotFound        = errors.New("wallet not found")
+	ErrWalletAlreadyExists   = errors.New("wallet already exists")
+	ErrWalletInvalidAmount   = errors.New("amount must be greater than zero")
+	ErrInsufficientFunds     = errors.New("insufficient funds on the balance")
+	ErrWalletIncorrectUserID = errors.New("wallet userID should be non-zero value")
 )
 
 type Wallet struct {
@@ -21,6 +22,10 @@ type Wallet struct {
 }
 
 func NewWallet(userID int64) (*Wallet, error) {
+	if userID <= 0 {
+		return nil, ErrWalletIncorrectUserID
+	}
+
 	return &Wallet{
 		UserID:  userID,
 		Balance: 0,

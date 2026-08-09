@@ -43,14 +43,21 @@ var domainErrorsToHttp = DomainToHttpErrorMap{
 	domain.ErrUserAlreadyExists:      &HttpError{ClientMessage: domain.ErrUserAlreadyExists.Error(), Code: "USER_ALREADY_EXISTS", StatusCode: http.StatusConflict},
 	domain.ErrInvalidLoginOrPassword: &HttpError{ClientMessage: domain.ErrInvalidLoginOrPassword.Error(), Code: "INVALID_LOGIN_OR_PASSWORD", StatusCode: http.StatusUnauthorized},
 	domain.ErrWrongPassword:          &HttpError{ClientMessage: domain.ErrWrongPassword.Error(), Code: "ERROR_WRONG_PASSWORD", StatusCode: http.StatusForbidden},
+	domain.ErrUserEmptyLogin:         &HttpError{ClientMessage: domain.ErrUserEmptyLogin.Error(), Code: "ERROR_USER_EMPTY_LOGIN", StatusCode: http.StatusBadRequest},
+	domain.ErrUserEmptyPasswordHash:  &HttpError{ClientMessage: domain.ErrUserEmptyPasswordHash.Error(), Code: "ERROR_USER_EMPTY_PASSWORD", StatusCode: http.StatusBadRequest},
 	// TRANSACTIONS
-	domain.ErrTransactionNotFound: &HttpError{ClientMessage: domain.ErrTransactionNotFound.Error(), Code: "TRANSACTION_NOT_FOUND", StatusCode: http.StatusNotFound},
+	domain.ErrTransactionNotFound:          &HttpError{ClientMessage: domain.ErrTransactionNotFound.Error(), Code: "TRANSACTION_NOT_FOUND", StatusCode: http.StatusNotFound},
+	domain.ErrTransactionAlreadyExists:     &HttpError{ClientMessage: domain.ErrTransactionAlreadyExists.Error(), Code: "TRANSACTION_ALREADY_EXISTS", StatusCode: http.StatusConflict},
+	domain.ErrTransactionIncorrectWalletID: &HttpError{ClientMessage: domain.ErrTransactionIncorrectWalletID.Error(), Code: "TRANSACTION_INCORRECT_WALLET_ID", StatusCode: http.StatusBadRequest},
+	domain.ErrTransactionIncorrectType:     &HttpError{ClientMessage: domain.ErrTransactionIncorrectType.Error(), Code: "TRANSACTION_INCORRECT_TYPE", StatusCode: http.StatusBadRequest},
+	domain.ErrTransactionInvalidAmount:     &HttpError{ClientMessage: domain.ErrTransactionInvalidAmount.Error(), Code: "TRANSACTION_INVALID_AMOUNT", StatusCode: http.StatusBadRequest},
 	// WALLET
-	domain.ErrWalletNotFound:      &HttpError{ClientMessage: domain.ErrWalletNotFound.Error(), Code: "WALLET_NOT_FOUND", StatusCode: http.StatusNotFound},
-	domain.ErrWalletAlreadyExists: &HttpError{ClientMessage: domain.ErrWalletAlreadyExists.Error(), Code: "WALLET_ALREADY_EXISTS", StatusCode: http.StatusConflict},
-	wallet.ErrWalletAccessDenied:  &HttpError{ClientMessage: wallet.ErrWalletAccessDenied.Error(), Code: "WALLET_ACCESS_DENIED", StatusCode: http.StatusForbidden},
-	domain.ErrWalletInvalidAmount: &HttpError{ClientMessage: domain.ErrWalletInvalidAmount.Error(), Code: "WALLET_ACTION_INVALID_AMOUNT", StatusCode: http.StatusBadRequest},
-	domain.ErrInsufficientFunds:   &HttpError{ClientMessage: domain.ErrInsufficientFunds.Error(), Code: "WALLET_INSUFFICIENT_FUNDS_ON_BALANCE", StatusCode: http.StatusConflict},
+	domain.ErrWalletNotFound:        &HttpError{ClientMessage: domain.ErrWalletNotFound.Error(), Code: "WALLET_NOT_FOUND", StatusCode: http.StatusNotFound},
+	domain.ErrWalletAlreadyExists:   &HttpError{ClientMessage: domain.ErrWalletAlreadyExists.Error(), Code: "WALLET_ALREADY_EXISTS", StatusCode: http.StatusConflict},
+	wallet.ErrWalletAccessDenied:    &HttpError{ClientMessage: wallet.ErrWalletAccessDenied.Error(), Code: "WALLET_ACCESS_DENIED", StatusCode: http.StatusForbidden},
+	domain.ErrWalletInvalidAmount:   &HttpError{ClientMessage: domain.ErrWalletInvalidAmount.Error(), Code: "WALLET_ACTION_INVALID_AMOUNT", StatusCode: http.StatusBadRequest},
+	domain.ErrInsufficientFunds:     &HttpError{ClientMessage: domain.ErrInsufficientFunds.Error(), Code: "WALLET_INSUFFICIENT_FUNDS_ON_BALANCE", StatusCode: http.StatusConflict},
+	domain.ErrWalletIncorrectUserID: &HttpError{ClientMessage: domain.ErrWalletIncorrectUserID.Error(), Code: "WALLET_INCORRECT_USER_ID", StatusCode: http.StatusBadRequest},
 }
 
 // ------------- VALIDATION -------------

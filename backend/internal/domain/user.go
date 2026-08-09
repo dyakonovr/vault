@@ -11,6 +11,8 @@ var (
 	ErrInvalidLoginOrPassword = errors.New("invalid login or password")
 	ErrWrongPassword          = errors.New("wrong password")
 	ErrSessionNotFound        = errors.New("session not found")
+	ErrUserEmptyLogin         = errors.New("user login can't be empty")
+	ErrUserEmptyPasswordHash  = errors.New("user password can't be empty")
 )
 
 type User struct {
@@ -22,6 +24,14 @@ type User struct {
 }
 
 func NewUser(login, passwordHash string) (*User, error) {
+	if login == "" {
+		return nil, ErrUserEmptyLogin
+	}
+
+	if passwordHash == "" {
+		return nil, ErrUserEmptyPasswordHash
+	}
+
 	return &User{
 		Login:        login,
 		PasswordHash: passwordHash,

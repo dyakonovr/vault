@@ -6,6 +6,7 @@ import (
 	"vault/internal/domain"
 	"vault/internal/infrastructure/persistence"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -64,6 +65,19 @@ func (r *TransactionRepository) GetById(ctx context.Context, id int64) (domain.T
 
 	query := r.db.WithContext(ctx).
 		Where("id = ?", id).
+		First(&transaction)
+	if query.Error != nil {
+		return domain.Transaction{}, mapDbErrorToDomain(query.Error, transactionDomainErrors, false)
+	}
+
+	return mapTransactionToDomain(transaction), nil
+}
+
+func (r *TransactionRepository) GetByIdempotencyKey(ctx context.Context, key uuid.UUID) (domain.Transaction, error) {
+	var transaction TransactionModel
+
+	query := r.db.WithContext(ctx).
+		Where("idempotency_key = ?", key).
 		First(&transaction)
 	if query.Error != nil {
 		return domain.Transaction{}, mapDbErrorToDomain(query.Error, transactionDomainErrors, false)

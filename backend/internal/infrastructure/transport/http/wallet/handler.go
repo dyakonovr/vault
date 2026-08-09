@@ -2,19 +2,22 @@ package wallet
 
 import (
 	"net/http"
-	"vault/internal/application/wallet"
+	depositapp "vault/internal/application/deposit"
+	walletapp "vault/internal/application/wallet"
 	httpcommon "vault/internal/infrastructure/transport/http/common"
 
 	"github.com/labstack/echo/v5"
 )
 
 type WalletHandler struct {
-	walletService walletService
+	walletService  walletService
+	depositService depositService
 }
 
-func New(walletService walletService) *WalletHandler {
+func New(walletService walletService, depositService depositService) *WalletHandler {
 	return &WalletHandler{
-		walletService: walletService,
+		walletService:  walletService,
+		depositService: depositService,
 	}
 }
 
@@ -65,7 +68,7 @@ func (h *WalletHandler) Create(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
-	wallet, err := h.walletService.Create(ctx.Request().Context(), wallet.CreateWalletCommand{
+	wallet, err := h.walletService.Create(ctx.Request().Context(), walletapp.CreateWalletCommand{
 		UserID: userID,
 	})
 	if err != nil {
@@ -106,7 +109,7 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
-	wallet, err := h.walletService.Deposit(ctx.Request().Context(), id, wallet.WalletDepositCommand{
+	transaction, err := h.depositService.Do(ctx.Request().Context(), id, depositapp.DepositCommand{
 		UserID: userID,
 		Amount: req.Amount,
 	})
@@ -114,7 +117,8 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, NewBalanceResponse(wallet.Balance))
+	// TODO: подумать, что нужно вернуть
+	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, nil)
 }
 
 // Withdraw godoc
@@ -148,7 +152,7 @@ func (h *WalletHandler) Withdraw(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
-	wallet, err := h.walletService.Withdraw(ctx.Request().Context(), id, wallet.WalletWithdrawCommand{
+	wallet, err := h.walletService.Withdraw(ctx.Request().Context(), id, walletapp.WalletWithdrawCommand{
 		UserID: userID,
 		Amount: req.Amount,
 	})
