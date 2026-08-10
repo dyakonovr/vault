@@ -30,5 +30,5 @@ CREATE TABLE transactions (
 
 -- Индексы для частых запросов
 CREATE INDEX idx_transactions_wallet_id ON transactions(wallet_id);
-CREATE INDEX idx_transactions_idempotency_key ON transactions(idempotency_key);
+CREATE UNIQUE INDEX idx_transactions_idempotency_key_type ON transactions(idempotency_key, type);
 CREATE INDEX idx_wallets_user_id ON wallets(user_id);
