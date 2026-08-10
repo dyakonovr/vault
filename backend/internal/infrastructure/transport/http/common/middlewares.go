@@ -92,9 +92,23 @@ func (m *WalletOwnershipMiddleware) Check(next echo.HandlerFunc) echo.HandlerFun
 func RequestIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		id := uuid.New().String()
-		c.Response().Header().Set("X-Request-ID", id)
+		c.Response().Header().Set("Request-ID", id)
 		setValueIntoRequestContext(c, ctxkeys.RequestIDKey, id)
 
+		return next(c)
+	}
+}
+
+// ---------- IDEMPOTENCY KEY ----------
+func IdempotencyKeyMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c *echo.Context) error {
+		value := c.Response().Header().Get("Idempotency-Key")
+		idempotencyKey, err := uuid.Parse(value)
+		if err != nil {
+			return HTTPErrorResponse(c, ErrIdempotencyKeyNotFound)
+		}
+
+		setValueIntoRequestContext(c, ctxkeys.IdempotencyKey, idempotencyKey)
 		return next(c)
 	}
 }

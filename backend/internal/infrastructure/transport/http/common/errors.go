@@ -3,18 +3,20 @@ package common
 import (
 	"net/http"
 	nethttp "net/http"
-	"vault/internal/application/wallet"
+	transferapp "vault/internal/application/transfer"
+	walletapp "vault/internal/application/wallet"
 	"vault/internal/domain"
 )
 
 // ------------- GENERAL ERRORS -------------
 
 var (
-	ErrUnauthorized        = &HttpError{ClientMessage: "user unauthorized", Code: "UNAUTHORIZED", StatusCode: nethttp.StatusUnauthorized}
-	ErrBadRequest          = &HttpError{ClientMessage: "bad request", Code: "BAD_REQUEST", StatusCode: nethttp.StatusBadRequest}
-	ErrInternalServerError = &HttpError{ClientMessage: "internal server error", Code: "INTERNAL_SERVER_ERROR", StatusCode: nethttp.StatusInternalServerError}
-	ErrUnprocessableEntity = &HttpError{ClientMessage: "unprocessable entity", Code: "UNPROCESSABLE_ENTITY", StatusCode: nethttp.StatusUnprocessableEntity}
-	ErrValidation          = &HttpError{ClientMessage: "validation error", Code: "VALIDATION_ERROR", StatusCode: nethttp.StatusUnprocessableEntity}
+	ErrUnauthorized           = &HttpError{ClientMessage: "user unauthorized", Code: "UNAUTHORIZED", StatusCode: nethttp.StatusUnauthorized}
+	ErrBadRequest             = &HttpError{ClientMessage: "bad request", Code: "BAD_REQUEST", StatusCode: nethttp.StatusBadRequest}
+	ErrInternalServerError    = &HttpError{ClientMessage: "internal server error", Code: "INTERNAL_SERVER_ERROR", StatusCode: nethttp.StatusInternalServerError}
+	ErrUnprocessableEntity    = &HttpError{ClientMessage: "unprocessable entity", Code: "UNPROCESSABLE_ENTITY", StatusCode: nethttp.StatusUnprocessableEntity}
+	ErrValidation             = &HttpError{ClientMessage: "validation error", Code: "VALIDATION_ERROR", StatusCode: nethttp.StatusUnprocessableEntity}
+	ErrIdempotencyKeyNotFound = &HttpError{ClientMessage: "idempotency key not found", Code: "IDEMPOTENCY_KEY_NOT_FOUND", StatusCode: nethttp.StatusBadRequest}
 )
 
 // ------------- DOMAIN TO HTTP ERRORS & MAPPING UTIL -------------
@@ -52,12 +54,13 @@ var domainErrorsToHttp = DomainToHttpErrorMap{
 	domain.ErrTransactionIncorrectType:     &HttpError{ClientMessage: domain.ErrTransactionIncorrectType.Error(), Code: "TRANSACTION_INCORRECT_TYPE", StatusCode: http.StatusBadRequest},
 	domain.ErrTransactionInvalidAmount:     &HttpError{ClientMessage: domain.ErrTransactionInvalidAmount.Error(), Code: "TRANSACTION_INVALID_AMOUNT", StatusCode: http.StatusBadRequest},
 	// WALLET
-	domain.ErrWalletNotFound:        &HttpError{ClientMessage: domain.ErrWalletNotFound.Error(), Code: "WALLET_NOT_FOUND", StatusCode: http.StatusNotFound},
-	domain.ErrWalletAlreadyExists:   &HttpError{ClientMessage: domain.ErrWalletAlreadyExists.Error(), Code: "WALLET_ALREADY_EXISTS", StatusCode: http.StatusConflict},
-	wallet.ErrWalletAccessDenied:    &HttpError{ClientMessage: wallet.ErrWalletAccessDenied.Error(), Code: "WALLET_ACCESS_DENIED", StatusCode: http.StatusForbidden},
-	domain.ErrWalletInvalidAmount:   &HttpError{ClientMessage: domain.ErrWalletInvalidAmount.Error(), Code: "WALLET_ACTION_INVALID_AMOUNT", StatusCode: http.StatusBadRequest},
-	domain.ErrInsufficientFunds:     &HttpError{ClientMessage: domain.ErrInsufficientFunds.Error(), Code: "WALLET_INSUFFICIENT_FUNDS_ON_BALANCE", StatusCode: http.StatusConflict},
-	domain.ErrWalletIncorrectUserID: &HttpError{ClientMessage: domain.ErrWalletIncorrectUserID.Error(), Code: "WALLET_INCORRECT_USER_ID", StatusCode: http.StatusBadRequest},
+	domain.ErrWalletNotFound:                &HttpError{ClientMessage: domain.ErrWalletNotFound.Error(), Code: "WALLET_NOT_FOUND", StatusCode: http.StatusNotFound},
+	domain.ErrWalletAlreadyExists:           &HttpError{ClientMessage: domain.ErrWalletAlreadyExists.Error(), Code: "WALLET_ALREADY_EXISTS", StatusCode: http.StatusConflict},
+	walletapp.ErrWalletAccessDenied:         &HttpError{ClientMessage: walletapp.ErrWalletAccessDenied.Error(), Code: "WALLET_ACCESS_DENIED", StatusCode: http.StatusForbidden},
+	domain.ErrWalletInvalidAmount:           &HttpError{ClientMessage: domain.ErrWalletInvalidAmount.Error(), Code: "WALLET_ACTION_INVALID_AMOUNT", StatusCode: http.StatusBadRequest},
+	domain.ErrInsufficientFunds:             &HttpError{ClientMessage: domain.ErrInsufficientFunds.Error(), Code: "WALLET_INSUFFICIENT_FUNDS_ON_BALANCE", StatusCode: http.StatusConflict},
+	domain.ErrWalletIncorrectUserID:         &HttpError{ClientMessage: domain.ErrWalletIncorrectUserID.Error(), Code: "WALLET_INCORRECT_USER_ID", StatusCode: http.StatusBadRequest},
+	transferapp.ErrTransferAlreadyCompleted: &HttpError{ClientMessage: transferapp.ErrTransferAlreadyCompleted.Error(), Code: "WALLETS_TRANSFER_ALREADY_COMPLETED", StatusCode: http.StatusConflict},
 }
 
 // ------------- VALIDATION -------------

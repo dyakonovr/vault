@@ -110,6 +110,11 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
+	idempotencyKey, ok := httpcommon.GetIdempotencyKeyFromContext(ctx.Request().Context())
+	if !ok {
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrIdempotencyKeyNotFound)
+	}
+
 	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
 	if !ok {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
@@ -119,7 +124,7 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		UserID:         userID,
 		Amount:         req.Amount,
 		WalletID:       walletID,
-		IdempotencyKey: req.IdempotencyKey,
+		IdempotencyKey: idempotencyKey,
 	})
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
@@ -155,6 +160,11 @@ func (h *WalletHandler) Withdrawal(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
+	idempotencyKey, ok := httpcommon.GetIdempotencyKeyFromContext(ctx.Request().Context())
+	if !ok {
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrIdempotencyKeyNotFound)
+	}
+
 	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
 	if !ok {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
@@ -164,7 +174,7 @@ func (h *WalletHandler) Withdrawal(ctx *echo.Context) error {
 		UserID:         userID,
 		Amount:         req.Amount,
 		WalletID:       walletID,
-		IdempotencyKey: req.IdempotencyKey,
+		IdempotencyKey: idempotencyKey,
 	})
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
@@ -180,6 +190,11 @@ func (h *WalletHandler) Transfer(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
+	idempotencyKey, ok := httpcommon.GetIdempotencyKeyFromContext(ctx.Request().Context())
+	if !ok {
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrIdempotencyKeyNotFound)
+	}
+
 	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
 	if !ok {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
@@ -190,7 +205,7 @@ func (h *WalletHandler) Transfer(ctx *echo.Context) error {
 		Amount:         req.Amount,
 		WalletFromID:   req.WalletFromID,
 		WalletToID:     req.WalletToID,
-		IdempotencyKey: req.IdempotencyKey,
+		IdempotencyKey: idempotencyKey,
 	})
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
