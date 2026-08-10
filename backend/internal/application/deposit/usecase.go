@@ -34,7 +34,7 @@ func (u *DepositUsecase) Do(ctx context.Context, command DepositCommand) (domain
 			return err
 		}
 
-		wallet, err := repos.WalletRepository().GetById(ctx, command.WalletID)
+		wallet, err := repos.WalletRepository().GetByIdForUpdate(ctx, command.WalletID)
 		if err != nil {
 			return err
 		}

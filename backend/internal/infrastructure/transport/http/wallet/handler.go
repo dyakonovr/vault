@@ -3,6 +3,7 @@ package wallet
 import (
 	"net/http"
 	depositapp "vault/internal/application/deposit"
+	transferapp "vault/internal/application/transfer"
 	walletapp "vault/internal/application/wallet"
 	"vault/internal/application/withdrawal"
 	httpcommon "vault/internal/infrastructure/transport/http/common"
@@ -14,13 +15,15 @@ type WalletHandler struct {
 	walletService     walletService
 	depositService    depositService
 	withdrawalService withdrawalService
+	transferService   transferService
 }
 
-func New(walletService walletService, depositService depositService, withdrawalService withdrawalService) *WalletHandler {
+func New(walletService walletService, depositService depositService, withdrawalService withdrawalService, transferService transferService) *WalletHandler {
 	return &WalletHandler{
 		walletService:     walletService,
 		depositService:    depositService,
 		withdrawalService: withdrawalService,
+		transferService:   transferService,
 	}
 }
 
@@ -161,6 +164,32 @@ func (h *WalletHandler) Withdrawal(ctx *echo.Context) error {
 		UserID:         userID,
 		Amount:         req.Amount,
 		WalletID:       walletID,
+		IdempotencyKey: req.IdempotencyKey,
+	})
+	if err != nil {
+		return httpcommon.HTTPErrorResponse(ctx, err)
+	}
+
+	// TODO: подумать, что нужно вернуть
+	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, nil)
+}
+
+func (h *WalletHandler) Transfer(ctx *echo.Context) error {
+	var req TransferRequest
+	if err := httpcommon.ParseAndValidateRequestBody(ctx, &req); err != nil {
+		return httpcommon.HTTPErrorResponse(ctx, err)
+	}
+
+	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
+	if !ok {
+		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
+	}
+
+	err := h.transferService.Do(ctx.Request().Context(), transferapp.TransferCommand{
+		UserID:         userID,
+		Amount:         req.Amount,
+		WalletFromID:   req.WalletFromID,
+		WalletToID:     req.WalletToID,
 		IdempotencyKey: req.IdempotencyKey,
 	})
 	if err != nil {

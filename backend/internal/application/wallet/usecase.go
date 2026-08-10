@@ -39,27 +39,6 @@ func (u *WalletUsecase) Create(ctx context.Context, command CreateWalletCommand)
 	return *wallet, nil
 }
 
-func (u *WalletUsecase) Withdrawal(ctx context.Context, id int64, command WalletWithdrawCommand) (domain.Wallet, error) {
-	if err := u.IsOwnedBy(ctx, id, command.UserID); err != nil {
-		return domain.Wallet{}, err
-	}
-
-	wallet, err := u.walletRepository.GetById(ctx, id)
-	if err != nil {
-		return domain.Wallet{}, err
-	}
-
-	err = wallet.Withdrawal(command.Amount)
-	if err != nil {
-		return domain.Wallet{}, err
-	}
-
-	if err := u.walletRepository.Update(ctx, &wallet); err != nil {
-		return domain.Wallet{}, err
-	}
-	return wallet, nil
-}
-
 func (u *WalletUsecase) IsOwnedBy(ctx context.Context, walletID, userID int64) error {
 	wallet, err := u.walletRepository.GetById(ctx, walletID)
 	if err != nil {

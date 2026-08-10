@@ -34,12 +34,12 @@ func (u *WithdrawUsecase) Do(ctx context.Context, command WithdrawalCommand) (do
 			return err
 		}
 
-		wallet, err := repos.WalletRepository().GetById(ctx, command.WalletID)
+		wallet, err := repos.WalletRepository().GetByIdForUpdate(ctx, command.WalletID)
 		if err != nil {
 			return err
 		}
 
-		err = wallet.Withdrawal(command.Amount)
+		err = wallet.Withdraw(command.Amount)
 		if err != nil {
 			return err
 		}

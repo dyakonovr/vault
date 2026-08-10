@@ -70,7 +70,8 @@ func (s *Server) InitRoutes(
 		// WALLETS
 		wallets := apiGroup.Group("/wallets", authMiddleware.RequireAuth)
 		{
-			wallets.POST("", walletHandler.Create) // POST   /api/wallets
+			wallets.POST("", walletHandler.Create)             // POST   /api/wallets
+			wallets.POST("/transfers", walletHandler.Transfer) // POST   /api/wallets/transfers
 
 			walletOwnership := wallets.Group("", walletOwnershipMiddleware.Check)
 			{

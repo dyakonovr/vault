@@ -6,6 +6,7 @@ import (
 	"vault/internal/infrastructure/persistence"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var walletDomainErrors = DbDomainErrorsMap{
@@ -27,6 +28,20 @@ func (r *WalletRepository) GetById(ctx context.Context, id int64) (domain.Wallet
 	var wallet WalletModel
 
 	query := r.db.WithContext(ctx).
+		Where("id = ?", id).
+		First(&wallet)
+	if query.Error != nil {
+		return domain.Wallet{}, mapDbErrorToDomain(query.Error, walletDomainErrors, false)
+	}
+
+	return mapWalletToDomain(wallet), nil
+}
+
+func (r *WalletRepository) GetByIdForUpdate(ctx context.Context, id int64) (domain.Wallet, error) {
+	var wallet WalletModel
+
+	query := r.db.WithContext(ctx).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("id = ?", id).
 		First(&wallet)
 	if query.Error != nil {

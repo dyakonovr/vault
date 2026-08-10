@@ -3,6 +3,7 @@ package wallet
 import (
 	"context"
 	depositapp "vault/internal/application/deposit"
+	transferapp "vault/internal/application/transfer"
 	walletapp "vault/internal/application/wallet"
 	withdrawalapp "vault/internal/application/withdrawal"
 	"vault/internal/domain"
@@ -19,4 +20,8 @@ type depositService interface {
 
 type withdrawalService interface {
 	Do(ctx context.Context, command withdrawalapp.WithdrawalCommand) (domain.Transaction, error)
+}
+
+type transferService interface {
+	Do(ctx context.Context, command transferapp.TransferCommand) error
 }

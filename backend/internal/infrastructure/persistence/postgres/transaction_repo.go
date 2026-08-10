@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO: что будет, если будет несколько полей уникальных? Как разделить ошибки?
 var transactionDomainErrors = DbDomainErrorsMap{
 	persistence.ErrDBNoRows:          domain.ErrTransactionNotFound,
 	persistence.ErrDBUniqueViolation: domain.ErrTransactionAlreadyExists,
@@ -78,6 +79,19 @@ func (r *TransactionRepository) GetByIdempotencyKey(ctx context.Context, key uui
 
 	query := r.db.WithContext(ctx).
 		Where("idempotency_key = ?", key).
+		First(&transaction)
+	if query.Error != nil {
+		return domain.Transaction{}, mapDbErrorToDomain(query.Error, transactionDomainErrors, false)
+	}
+
+	return mapTransactionToDomain(transaction), nil
+}
+
+func (r *TransactionRepository) GetByIdempotencyKeyAndType(ctx context.Context, key uuid.UUID, type_ domain.TransactionType) (domain.Transaction, error) {
+	var transaction TransactionModel
+
+	query := r.db.WithContext(ctx).
+		Where("idempotency_key = ? AND type = ?", key, type_).
 		First(&transaction)
 	if query.Error != nil {
 		return domain.Transaction{}, mapDbErrorToDomain(query.Error, transactionDomainErrors, false)
