@@ -19,18 +19,20 @@ func New(walletOwnershipChecker walletOwnershipChecker, unitOfWork walletapp.Uni
 	}
 }
 
-func (u *TransferUsecase) Do(ctx context.Context, command TransferCommand) error {
+func (u *TransferUsecase) Do(ctx context.Context, command TransferCommand) (domain.Transaction, error) {
+	var tx domain.Transaction
 	if err := u.walletOwnershipChecker.IsOwnedBy(ctx, command.WalletFromID, command.UserID); err != nil {
-		return err
+		return tx, err
 	}
 
-	return u.unitOfWork.StartTransaction(ctx, func(repos walletapp.TransactionalResources) error {
+	err := u.unitOfWork.StartTransaction(ctx, func(repos walletapp.TransactionalResources) (error) {
 		// Check transaction existence by idempotency key. Type check not needed
 		// Second transaction for "transfer_in" not needed (Atomicity)
 		// TODO: что здесь отображают ошибки? как это отлаживать-то?
-		_, err := repos.TransactionRepository().GetByIdempotencyKey(ctx, command.IdempotencyKey)
+		existsTransaction, err := repos.TransactionRepository().GetByIdempotencyKey(ctx, command.IdempotencyKey)
 		if err == nil {
-			return ErrTransferAlreadyCompleted
+			tx = existsTransaction
+			return nil
 		} else if !errors.Is(err, domain.ErrTransactionNotFound) {
 			return err
 		}
@@ -66,6 +68,8 @@ func (u *TransferUsecase) Do(ctx context.Context, command TransferCommand) error
 			return err
 		}
 
+		tx = *transaction
+
 		// Deposit money to recipient wallet
 		err = walletTo.Deposit(command.Amount)
 		if err != nil {
@@ -94,6 +98,8 @@ func (u *TransferUsecase) Do(ctx context.Context, command TransferCommand) error
 
 		return nil
 	})
+
+	return tx, err
 }
 
 // Lock wallets by IDs sorting

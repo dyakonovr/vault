@@ -23,5 +23,5 @@ type withdrawalService interface {
 }
 
 type transferService interface {
-	Do(ctx context.Context, command transferapp.TransferCommand) error
+	Do(ctx context.Context, command transferapp.TransferCommand) (domain.Transaction, error)
 }

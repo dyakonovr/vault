@@ -236,6 +236,75 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/wallets/transfers": {
+            "post": {
+                "security": [
+                    {
+                        "session": []
+                    }
+                ],
+                "description": "Выполняет перевод средств между двумя кошельками. Кошельки должны принадлежать текущему пользователю.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Кошельки"
+                ],
+                "summary": "Перевод между кошельками",
+                "parameters": [
+                    {
+                        "description": "Данные перевода",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/wallet.TransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Транзакция перевода",
+                        "schema": {
+                            "$ref": "#/definitions/transaction.TransactionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Необходима авторизация",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Недостаточно средств на балансе",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/wallets/{id}/balance": {
             "get": {
                 "security": [
@@ -358,7 +427,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/wallets/{id}/withdraw": {
+        "/api/wallets/{id}/withdrawal": {
             "post": {
                 "security": [
                     {
@@ -415,6 +484,146 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Недостаточно средств на балансе",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/wallets/{walletId}/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "session": []
+                    }
+                ],
+                "description": "Возвращает список транзакций кошелька с фильтрацией и пагинацией.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Транзакции"
+                ],
+                "summary": "Список транзакций кошелька",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID кошелька",
+                        "name": "walletId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Фильтры и параметры пагинации",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/transaction.ListTransactionsFilters"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список транзакций",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/transaction.TransactionResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный идентификатор",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Необходима авторизация",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/wallets/{walletId}/transactions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "session": []
+                    }
+                ],
+                "description": "Возвращает конкретную транзакцию по её идентификатору.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Транзакции"
+                ],
+                "summary": "Получение транзакции по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID кошелька",
+                        "name": "walletId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID транзакции",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Данные транзакции",
+                        "schema": {
+                            "$ref": "#/definitions/transaction.TransactionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный идентификатор",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Необходима авторизация",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Транзакция не найдена",
                         "schema": {
                             "$ref": "#/definitions/common.ErrorResponse"
                         }
@@ -520,6 +729,29 @@ const docTemplate = `{
                 }
             }
         },
+        "transaction.ListTransactionsFilters": {
+            "type": "object"
+        },
+        "transaction.TransactionResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "wallet.BalanceResponse": {
             "type": "object",
             "properties": {
@@ -535,6 +767,28 @@ const docTemplate = `{
             ],
             "properties": {
                 "amount": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "wallet.TransferRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "wallet_from_id",
+                "wallet_to_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "wallet_from_id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "wallet_to_id": {
                     "type": "integer",
                     "minimum": 1
                 }

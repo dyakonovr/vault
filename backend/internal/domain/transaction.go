@@ -16,6 +16,7 @@ var (
 	ErrTransactionIncorrectWalletID = errors.New("incorrect transaction walletID")
 	ErrTransactionIncorrectType     = errors.New("incorrect transaction type")
 	ErrTransactionInvalidAmount     = errors.New("transaction amount must be greater than zero")
+	ErrInvalidStatusTransition      = errors.New("invalid transaction status transition")
 )
 
 // ------------ TRANSACTION TYPES ------------
@@ -55,6 +56,8 @@ type Transaction struct {
 	Type           TransactionType
 	Amount         int64
 	IdempotencyKey uuid.UUID
+	// Статус не используется. При необходимости
+	// исправить присвоение в конструкторе
 	Status         TransactionStatus
 	CreatedAt      time.Time
 }
@@ -74,9 +77,17 @@ func NewTransaction(walletID int64, type_ TransactionType, amount int64, idempot
 
 	return &Transaction{
 		WalletID:       walletID,
-		Type:           TransactionType(type_),
+		Type:           type_,
 		Amount:         amount,
 		IdempotencyKey: idempotencyKey,
-		Status:         TransactionStatusPending,
+		Status:         TransactionStatusCompleted,
 	}, nil
 }
+
+// func (t *Transaction) MarkCompleted() error {
+// 	if t.Status != TransactionStatusPending {
+// 		return ErrInvalidStatusTransition
+// 	}
+// 	t.Status = TransactionStatusCompleted
+// 	return nil
+// }

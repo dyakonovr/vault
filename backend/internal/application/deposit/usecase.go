@@ -27,9 +27,10 @@ func (u *DepositUsecase) Do(ctx context.Context, command DepositCommand) (domain
 	}
 
 	err := u.unitOfWork.StartTransaction(ctx, func(repos walletapp.TransactionalResources) error {
-		_, err := repos.TransactionRepository().GetByIdempotencyKey(ctx, command.IdempotencyKey)
-		if err == nil {
-			return ErrDepositAlreadyCompleted
+		existsTransaction, err := repos.TransactionRepository().GetByIdempotencyKey(ctx, command.IdempotencyKey)
+		if err == nil { // Transaction already completed
+			tx = existsTransaction
+			return nil
 		} else if !errors.Is(err, domain.ErrTransactionNotFound) {
 			return err
 		}

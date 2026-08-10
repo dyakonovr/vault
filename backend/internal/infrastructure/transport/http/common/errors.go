@@ -3,7 +3,6 @@ package common
 import (
 	"net/http"
 	nethttp "net/http"
-	transferapp "vault/internal/application/transfer"
 	walletapp "vault/internal/application/wallet"
 	"vault/internal/domain"
 )
@@ -54,13 +53,12 @@ var domainErrorsToHttp = DomainToHttpErrorMap{
 	domain.ErrTransactionIncorrectType:     &HttpError{ClientMessage: domain.ErrTransactionIncorrectType.Error(), Code: "TRANSACTION_INCORRECT_TYPE", StatusCode: http.StatusBadRequest},
 	domain.ErrTransactionInvalidAmount:     &HttpError{ClientMessage: domain.ErrTransactionInvalidAmount.Error(), Code: "TRANSACTION_INVALID_AMOUNT", StatusCode: http.StatusBadRequest},
 	// WALLET
-	domain.ErrWalletNotFound:                &HttpError{ClientMessage: domain.ErrWalletNotFound.Error(), Code: "WALLET_NOT_FOUND", StatusCode: http.StatusNotFound},
-	domain.ErrWalletAlreadyExists:           &HttpError{ClientMessage: domain.ErrWalletAlreadyExists.Error(), Code: "WALLET_ALREADY_EXISTS", StatusCode: http.StatusConflict},
-	walletapp.ErrWalletAccessDenied:         &HttpError{ClientMessage: walletapp.ErrWalletAccessDenied.Error(), Code: "WALLET_ACCESS_DENIED", StatusCode: http.StatusForbidden},
-	domain.ErrWalletInvalidAmount:           &HttpError{ClientMessage: domain.ErrWalletInvalidAmount.Error(), Code: "WALLET_ACTION_INVALID_AMOUNT", StatusCode: http.StatusBadRequest},
-	domain.ErrInsufficientFunds:             &HttpError{ClientMessage: domain.ErrInsufficientFunds.Error(), Code: "WALLET_INSUFFICIENT_FUNDS_ON_BALANCE", StatusCode: http.StatusConflict},
-	domain.ErrWalletIncorrectUserID:         &HttpError{ClientMessage: domain.ErrWalletIncorrectUserID.Error(), Code: "WALLET_INCORRECT_USER_ID", StatusCode: http.StatusBadRequest},
-	transferapp.ErrTransferAlreadyCompleted: &HttpError{ClientMessage: transferapp.ErrTransferAlreadyCompleted.Error(), Code: "WALLETS_TRANSFER_ALREADY_COMPLETED", StatusCode: http.StatusConflict},
+	domain.ErrWalletNotFound:        &HttpError{ClientMessage: domain.ErrWalletNotFound.Error(), Code: "WALLET_NOT_FOUND", StatusCode: http.StatusNotFound},
+	domain.ErrWalletAlreadyExists:   &HttpError{ClientMessage: domain.ErrWalletAlreadyExists.Error(), Code: "WALLET_ALREADY_EXISTS", StatusCode: http.StatusConflict},
+	walletapp.ErrWalletAccessDenied: &HttpError{ClientMessage: walletapp.ErrWalletAccessDenied.Error(), Code: "WALLET_ACCESS_DENIED", StatusCode: http.StatusForbidden},
+	domain.ErrWalletInvalidAmount:   &HttpError{ClientMessage: domain.ErrWalletInvalidAmount.Error(), Code: "WALLET_ACTION_INVALID_AMOUNT", StatusCode: http.StatusBadRequest},
+	domain.ErrInsufficientFunds:     &HttpError{ClientMessage: domain.ErrInsufficientFunds.Error(), Code: "WALLET_INSUFFICIENT_FUNDS_ON_BALANCE", StatusCode: http.StatusConflict},
+	domain.ErrWalletIncorrectUserID: &HttpError{ClientMessage: domain.ErrWalletIncorrectUserID.Error(), Code: "WALLET_INCORRECT_USER_ID", StatusCode: http.StatusBadRequest},
 }
 
 // ------------- VALIDATION -------------

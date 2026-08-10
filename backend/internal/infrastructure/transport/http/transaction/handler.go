@@ -19,6 +19,20 @@ func New(transactionService transactionService) *TransactionHandler {
 	}
 }
 
+// List godoc
+// @Summary      Список транзакций кошелька
+// @Description  Возвращает список транзакций кошелька с фильтрацией и пагинацией.
+// @Tags         Транзакции
+// @Produce      json
+// @Security     session
+// @Param        walletId path     int                    true "ID кошелька"
+// @Param        body     body     ListTransactionsFilters false "Фильтры и параметры пагинации"
+// @Success      200      {array}  TransactionResponse    "Список транзакций"
+// @Failure      400      {object} common.ErrorResponse   "Некорректный идентификатор"
+// @Failure      401      {object} common.ErrorResponse   "Необходима авторизация"
+// @Failure      403      {object} common.ErrorResponse   "Доступ запрещён"
+// @Failure      500      {object} common.ErrorResponse   "Внутренняя ошибка сервера"
+// @Router       /api/wallets/{walletId}/transactions [get]
 func (h *TransactionHandler) List(ctx *echo.Context) error {
 	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
 	if !ok {
@@ -67,6 +81,21 @@ func (h *TransactionHandler) List(ctx *echo.Context) error {
 	})
 }
 
+// GetByID godoc
+// @Summary      Получение транзакции по ID
+// @Description  Возвращает конкретную транзакцию по её идентификатору.
+// @Tags         Транзакции
+// @Produce      json
+// @Security     session
+// @Param        walletId  path     int                      true "ID кошелька"
+// @Param        id        path     int                      true "ID транзакции"
+// @Success      200       {object} TransactionResponse      "Данные транзакции"
+// @Failure      400       {object} common.ErrorResponse     "Некорректный идентификатор"
+// @Failure      401       {object} common.ErrorResponse     "Необходима авторизация"
+// @Failure      403       {object} common.ErrorResponse     "Доступ запрещён"
+// @Failure      404       {object} common.ErrorResponse     "Транзакция не найдена"
+// @Failure      500       {object} common.ErrorResponse     "Внутренняя ошибка сервера"
+// @Router       /api/wallets/{walletId}/transactions/{id} [get]
 func (h *TransactionHandler) GetByID(ctx *echo.Context) error {
 	userID, ok := httpcommon.GetUserIDFromContext(ctx.Request().Context())
 	if !ok {

@@ -61,6 +61,21 @@ definitions:
         $ref: '#/definitions/common.ValidationError'
       type: array
     type: object
+  transaction.ListTransactionsFilters:
+    type: object
+  transaction.TransactionResponse:
+    properties:
+      amount:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      status:
+        type: string
+      type:
+        type: string
+    type: object
   wallet.BalanceResponse:
     properties:
       balance:
@@ -73,6 +88,22 @@ definitions:
         type: integer
     required:
     - amount
+    type: object
+  wallet.TransferRequest:
+    properties:
+      amount:
+        minimum: 1
+        type: integer
+      wallet_from_id:
+        minimum: 1
+        type: integer
+      wallet_to_id:
+        minimum: 1
+        type: integer
+    required:
+    - amount
+    - wallet_from_id
+    - wallet_to_id
     type: object
   wallet.WalletResponse:
     properties:
@@ -321,7 +352,7 @@ paths:
       summary: Пополнение кошелька
       tags:
       - Кошельки
-  /api/wallets/{id}/withdraw:
+  /api/wallets/{id}/withdrawal:
     post:
       consumes:
       - application/json
@@ -365,6 +396,141 @@ paths:
       security:
       - session: []
       summary: Списание средств с кошелька
+      tags:
+      - Кошельки
+  /api/wallets/{walletId}/transactions:
+    get:
+      description: Возвращает список транзакций кошелька с фильтрацией и пагинацией.
+      parameters:
+      - description: ID кошелька
+        in: path
+        name: walletId
+        required: true
+        type: integer
+      - description: Фильтры и параметры пагинации
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/transaction.ListTransactionsFilters'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список транзакций
+          schema:
+            items:
+              $ref: '#/definitions/transaction.TransactionResponse'
+            type: array
+        "400":
+          description: Некорректный идентификатор
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "401":
+          description: Необходима авторизация
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "403":
+          description: Доступ запрещён
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      security:
+      - session: []
+      summary: Список транзакций кошелька
+      tags:
+      - Транзакции
+  /api/wallets/{walletId}/transactions/{id}:
+    get:
+      description: Возвращает конкретную транзакцию по её идентификатору.
+      parameters:
+      - description: ID кошелька
+        in: path
+        name: walletId
+        required: true
+        type: integer
+      - description: ID транзакции
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные транзакции
+          schema:
+            $ref: '#/definitions/transaction.TransactionResponse'
+        "400":
+          description: Некорректный идентификатор
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "401":
+          description: Необходима авторизация
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "403":
+          description: Доступ запрещён
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "404":
+          description: Транзакция не найдена
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      security:
+      - session: []
+      summary: Получение транзакции по ID
+      tags:
+      - Транзакции
+  /api/wallets/transfers:
+    post:
+      consumes:
+      - application/json
+      description: Выполняет перевод средств между двумя кошельками. Кошельки должны
+        принадлежать текущему пользователю.
+      parameters:
+      - description: Данные перевода
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/wallet.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Транзакция перевода
+          schema:
+            $ref: '#/definitions/transaction.TransactionResponse'
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "401":
+          description: Необходима авторизация
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "403":
+          description: Доступ запрещён
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "409":
+          description: Недостаточно средств на балансе
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/common.ErrorResponse'
+      security:
+      - session: []
+      summary: Перевод между кошельками
       tags:
       - Кошельки
 schemes:

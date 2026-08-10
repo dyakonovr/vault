@@ -5,8 +5,9 @@ import (
 	depositapp "vault/internal/application/deposit"
 	transferapp "vault/internal/application/transfer"
 	walletapp "vault/internal/application/wallet"
-	"vault/internal/application/withdrawal"
+	withdrawalapp "vault/internal/application/withdrawal"
 	httpcommon "vault/internal/infrastructure/transport/http/common"
+	transactionhttp "vault/internal/infrastructure/transport/http/transaction"
 
 	"github.com/labstack/echo/v5"
 )
@@ -120,7 +121,7 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
-	transaction, err := h.depositService.Do(ctx.Request().Context(), depositapp.DepositCommand{
+	tx, err := h.depositService.Do(ctx.Request().Context(), depositapp.DepositCommand{
 		UserID:         userID,
 		Amount:         req.Amount,
 		WalletID:       walletID,
@@ -130,8 +131,7 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	// TODO: подумать, что нужно вернуть
-	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, nil)
+	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, transactionhttp.NewTransactionResponse(tx))
 }
 
 // Withdrawal godoc
@@ -170,7 +170,7 @@ func (h *WalletHandler) Withdrawal(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
-	transaction, err := h.withdrawalService.Do(ctx.Request().Context(), withdrawal.WithdrawalCommand{
+	tx, err := h.withdrawalService.Do(ctx.Request().Context(), withdrawalapp.WithdrawalCommand{
 		UserID:         userID,
 		Amount:         req.Amount,
 		WalletID:       walletID,
@@ -180,10 +180,24 @@ func (h *WalletHandler) Withdrawal(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	// TODO: подумать, что нужно вернуть
-	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, nil)
+	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, transactionhttp.NewTransactionResponse(tx))
 }
 
+// Transfer godoc
+// @Summary      Перевод между кошельками
+// @Description  Выполняет перевод средств между двумя кошельками. Кошельки должны принадлежать текущему пользователю.
+// @Tags         Кошельки
+// @Accept       json
+// @Produce      json
+// @Security     session
+// @Param        body body     TransferRequest true  "Данные перевода"
+// @Success      200  {object} transaction.TransactionResponse "Транзакция перевода"
+// @Failure      400  {object} common.ErrorResponse   "Ошибка валидации"
+// @Failure      401  {object} common.ErrorResponse   "Необходима авторизация"
+// @Failure      403  {object} common.ErrorResponse   "Доступ запрещён"
+// @Failure      409  {object} common.ErrorResponse   "Недостаточно средств на балансе"
+// @Failure      500  {object} common.ErrorResponse   "Внутренняя ошибка сервера"
+// @Router       /api/wallets/transfers [post]
 func (h *WalletHandler) Transfer(ctx *echo.Context) error {
 	var req TransferRequest
 	if err := httpcommon.ParseAndValidateRequestBody(ctx, &req); err != nil {
@@ -200,7 +214,7 @@ func (h *WalletHandler) Transfer(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
-	err := h.transferService.Do(ctx.Request().Context(), transferapp.TransferCommand{
+	tx, err := h.transferService.Do(ctx.Request().Context(), transferapp.TransferCommand{
 		UserID:         userID,
 		Amount:         req.Amount,
 		WalletFromID:   req.WalletFromID,
@@ -211,6 +225,5 @@ func (h *WalletHandler) Transfer(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	// TODO: подумать, что нужно вернуть
-	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, nil)
+	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, transactionhttp.NewTransactionResponse(tx))
 }
