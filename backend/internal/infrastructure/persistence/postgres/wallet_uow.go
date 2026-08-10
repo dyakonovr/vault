@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"context"
-	"vault/internal/application/deposit"
+	walletapp "vault/internal/application/wallet"
 
 	"gorm.io/gorm"
 )
@@ -17,7 +17,7 @@ func NewUnitOfWork(db *gorm.DB) *UnitOfWork {
 	}
 }
 
-func (uow *UnitOfWork) StartTransaction(ctx context.Context, caller func(resources deposit.TransactionalResources) error) error {
+func (uow *UnitOfWork) StartTransaction(ctx context.Context, caller func(resources walletapp.TransactionalResources) error) error {
 	return uow.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return caller(DepositRepositories{
 			walletRepo:      NewWalletRepository(tx),
@@ -31,5 +31,5 @@ type DepositRepositories struct {
 	transactionRepo *TransactionRepository
 }
 
-func (r DepositRepositories) WalletRepository() deposit.WalletRepository           { return r.walletRepo }
-func (r DepositRepositories) TransactionRepository() deposit.TransactionRepository { return r.transactionRepo }
+func (r DepositRepositories) WalletRepository() walletapp.WalletRepository           { return r.walletRepo }
+func (r DepositRepositories) TransactionRepository() walletapp.TransactionRepository { return r.transactionRepo }

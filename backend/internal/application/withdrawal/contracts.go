@@ -1,4 +1,4 @@
-package deposit
+package withdrawal
 
 import (
 	"context"

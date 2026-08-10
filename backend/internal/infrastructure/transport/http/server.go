@@ -48,7 +48,7 @@ func (s *Server) InitRoutes(
 	s.instance.GET("/health", func(c *echo.Context) error {
 		return c.String(nethttp.StatusOK, "ok")
 	})
-	
+
 	apiGroup := s.instance.Group("/api")
 	{
 		s.instance.Use(httpcommon.RequestIDMiddleware)
@@ -76,7 +76,7 @@ func (s *Server) InitRoutes(
 			{
 				walletOwnership.GET("/:id/balance", walletHandler.GetBalanceByID) // GET    /api/wallets/:id/balance
 				walletOwnership.POST("/:id/deposit", walletHandler.Deposit)       // POST   /api/wallets/:id/deposit
-				walletOwnership.POST("/:id/withdraw", walletHandler.Withdraw)     // POST   /api/wallets/:id/withdraw
+				walletOwnership.POST("/:id/withdrawal", walletHandler.Withdrawal) // POST   /api/wallets/:id/withdrawal
 
 				{
 					walletOwnership.GET("/:walletId/transactions", transactionHandler.List)        //  GET /api/wallets/:walletId/transactions

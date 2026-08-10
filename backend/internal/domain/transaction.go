@@ -59,12 +59,12 @@ type Transaction struct {
 	CreatedAt      time.Time
 }
 
-func NewTransaction(walletID int64, type_ string, amount int64, idempotencyKey uuid.UUID) (*Transaction, error) {
+func NewTransaction(walletID int64, type_ TransactionType, amount int64, idempotencyKey uuid.UUID) (*Transaction, error) {
 	if walletID <= 0 {
 		return nil, ErrTransactionIncorrectWalletID
 	}
 
-	if !utils.Contains(availableTransactionTypes, TransactionType(type_)) {
+	if !utils.Contains(availableTransactionTypes, type_) {
 		return nil, ErrTransactionIncorrectType
 	}
 

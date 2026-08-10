@@ -1,4 +1,4 @@
-package deposit
+package withdrawal
 
 import (
 	"context"
@@ -7,19 +7,19 @@ import (
 	"vault/internal/domain"
 )
 
-type DepositUsecase struct {
+type WithdrawUsecase struct {
 	walletOwnershipChecker walletOwnershipChecker
 	unitOfWork             walletapp.UnitOfWork
 }
 
-func New(walletOwnershipChecker walletOwnershipChecker, unitOfWork walletapp.UnitOfWork) *DepositUsecase {
-	return &DepositUsecase{
+func New(walletOwnershipChecker walletOwnershipChecker, unitOfWork walletapp.UnitOfWork) *WithdrawUsecase {
+	return &WithdrawUsecase{
 		walletOwnershipChecker: walletOwnershipChecker,
 		unitOfWork:             unitOfWork,
 	}
 }
 
-func (u *DepositUsecase) Do(ctx context.Context, command DepositCommand) (domain.Transaction, error) {
+func (u *WithdrawUsecase) Do(ctx context.Context, command WithdrawalCommand) (domain.Transaction, error) {
 	var tx domain.Transaction
 
 	if err := u.walletOwnershipChecker.IsOwnedBy(ctx, command.WalletID, command.UserID); err != nil {
@@ -29,7 +29,7 @@ func (u *DepositUsecase) Do(ctx context.Context, command DepositCommand) (domain
 	err := u.unitOfWork.StartTransaction(ctx, func(repos walletapp.TransactionalResources) error {
 		_, err := repos.TransactionRepository().GetByIdempotencyKey(ctx, command.IdempotencyKey)
 		if err == nil {
-			return ErrDepositAlreadyCompleted
+			return ErrWithdrawAlreadyCompleted
 		} else if !errors.Is(err, domain.ErrTransactionNotFound) {
 			return err
 		}
@@ -39,7 +39,7 @@ func (u *DepositUsecase) Do(ctx context.Context, command DepositCommand) (domain
 			return err
 		}
 
-		err = wallet.Deposit(command.Amount)
+		err = wallet.Withdrawal(command.Amount)
 		if err != nil {
 			return err
 		}
@@ -51,7 +51,7 @@ func (u *DepositUsecase) Do(ctx context.Context, command DepositCommand) (domain
 
 		transaction, err := domain.NewTransaction(
 			command.WalletID,
-			domain.TransactionTypeDeposit,
+			domain.TransactionTypeWithdrawal,
 			command.Amount,
 			command.IdempotencyKey,
 		)

@@ -21,7 +21,7 @@ cmd/
 internal/
   domain/
     user.go               # сущность User, конструктор, инварианты
-    wallet.go             # сущность Wallet, методы Deposit/Withdraw, инварианты баланса
+    wallet.go             # сущность Wallet, методы Deposit/Withdrawal, инварианты баланса
     errors.go             # общие доменные ошибки (ErrUserNotFound, ErrWalletNotFound и др.)
   application/
     auth/
@@ -36,7 +36,7 @@ internal/
       commands.go         # DTO: CreateWalletCommand, UpdateWalletCommand
       contracts.go        # интерфейс WalletRepository
       errors.go           # ошибки уровня приложения (ErrWalletAccessDenied)
-      usecase.go          # WalletUsecase: Create, Deposit, Withdraw, GetByID
+      usecase.go          # WalletUsecase: Create, Deposit, Withdrawal, GetByID
   infrastructure/
     persistence/
       postgres/
@@ -60,7 +60,7 @@ internal/
           request.go      # LoginRequest, RegisterRequest
           response.go     # UserResponse
         wallet/
-          handler.go      # Echo-хендлеры: /api/wallets, /api/wallets/:id/balance, /deposit, /withdraw
+          handler.go      # Echo-хендлеры: /api/wallets, /api/wallets/:id/balance, /deposit, /withdrawal
           contracts.go    # интерфейс walletService
           request.go      # CreateWalletRequest, UpdateWalletRequest
           response.go     # WalletResponse
@@ -98,7 +98,7 @@ HTTP-хендлеры разделены по сущностям (`auth`, `walle
 Мы полагаемся на атомарную проверку уникальности через constraint базы данных. Последовательность `SELECT + INSERT` неатомарна и подвержена гонкам. Опора на `UNIQUE` constraint и обработка ошибки `unique_violation` даёт гарантию без лишних запросов и гонок.
 
 ### Где обновляется `UpdatedAt`?
-- В доменных методах (`Wallet.Deposit`, `Wallet.Withdraw`) — потому что бизнес-операция фиксирует время изменения.
+- В доменных методах (`Wallet.Deposit`, `Wallet.Withdrawal`) — потому что бизнес-операция фиксирует время изменения.
 - В use case’е (`UserUsecase.Update`) — если операция не инкапсулирована в доменный метод, время устанавливается перед сохранением.
 - Репозиторий **не** устанавливает `UpdatedAt` — он только сохраняет переданное состояние.
 
@@ -121,17 +121,21 @@ HTTP-хендлеры разделены по сущностям (`auth`, `walle
 **Решение — паттерн Unit of Work (UoW):**  
 Use case'ы, требующие транзакционности, объявляют собственные контракты на доступ к репозиториям внутри транзакции. Эти контракты живут в application-слое и не зависят от конкретной БД.
 
-- Каждый сценарий (например, `DepositUseCase`) определяет интерфейс `TransactionalResources`, который предоставляет только те репозитории, которые нужны этому сценарию.
-- Use case оперирует интерфейсами (`WalletRepository`, `TransactionRepository`), не зная о GORM.
-- Инфраструктурный слой (`postgres`) создаёт тонкие адаптеры, реализующие эти интерфейсы, и оборачивает их в транзакцию PostgreSQL через `db.Transaction`.
+- Общий контракт `TransactionalResources` и `UnitOfWork` для операций с кошельком и транзакциями размещён в `application/wallet`. Он предоставляет `WalletRepository` и `TransactionRepository`.
+- Use case'ы `DepositUseCase` и `WithdrawUseCase` (и будущий `TransferUseCase`) используют этот контракт, не дублируя его.
+- Инфраструктурный слой (`postgres`) создаёт тонкий адаптер `WalletRepositories`, реализующий `wallet.TransactionalResources`, и метод `BeginWalletTransaction`, который оборачивает вызов в транзакцию GORM.
 
 **Почему не единый UoW на всё приложение?**  
-Создание одного универсального `UnitOfWork`, возвращающего все возможные репозитории, привело бы к god object'у и сильной связанности. Вместо этого каждый use case владеет своим контрактом. При добавлении нового сценария (например, регистрация пользователя с автоматическим созданием кошелька) мы создаём новый интерфейс `TransactionalResources` в пакете этого сценария, не затрагивая существующие. Инфраструктура реализует новый адаптер.
+Создание одного универсального `UnitOfWork`, возвращающего все возможные репозитории, привело бы к god object'у и нарушению Interface Segregation Principle. Вместо этого:
 
-**Пример для `DepositUseCase`:**
-- Контракт в `application/deposit/contracts.go` объявляет `TransactionalResources` с методами `WalletRepo()` и `TransactionRepo()`.
-- Use case принимает `UnitOfWork.Begin(ctx, func(TransactionalResources) error)`.
-- В `postgres/deposit_uow.go` реализован тип, удовлетворяющий `TransactionalResources`, и метод `Begin`, который стартует транзакцию GORM и передаёт адаптер в коллбэк.
+- Для семейства операций «изменение баланса + запись транзакции» используется один контракт (`wallet.TransactionalResources`).
+- Для принципиально другого сценария (например, регистрация пользователя с автоматическим созданием кошелька) будет создан отдельный контракт (`registration.TransactionalResources` с `UserRepo` и `WalletRepo`), не влияющий на существующие.
+
+**Как это работает (на примере `DepositUseCase`):**
+- Контракт определён в `application/wallet/contracts.go` (`TransactionalResources`, `UnitOfWork`).
+- Use case принимает `wallet.UnitOfWork` и вызывает `Begin(ctx, func(resources wallet.TransactionalResources) error { ... })`.
+- В коллбэке use case проверяет идемпотентность, загружает кошелёк, вызывает `wallet.Deposit`, сохраняет кошелёк и создаёт транзакцию — все операции внутри одной транзакции PostgreSQL.
+- `postgres/wallet_uow.go` реализует `wallet.TransactionalResources` и `wallet.UnitOfWork`, связывая GORM-транзакцию с адаптерами.
 
 Таким образом, use case полностью контролирует логику, оставаясь независимым от БД, а инфраструктура предоставляет атомарность. Это соответствует принципам чистой архитектуры и DDD: домен не знает о транзакциях, application управляет сценариями, infrastructure реализует хранение.
 

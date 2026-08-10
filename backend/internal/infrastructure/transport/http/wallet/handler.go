@@ -4,20 +4,23 @@ import (
 	"net/http"
 	depositapp "vault/internal/application/deposit"
 	walletapp "vault/internal/application/wallet"
+	"vault/internal/application/withdrawal"
 	httpcommon "vault/internal/infrastructure/transport/http/common"
 
 	"github.com/labstack/echo/v5"
 )
 
 type WalletHandler struct {
-	walletService  walletService
-	depositService depositService
+	walletService     walletService
+	depositService    depositService
+	withdrawalService withdrawalService
 }
 
-func New(walletService walletService, depositService depositService) *WalletHandler {
+func New(walletService walletService, depositService depositService, withdrawalService withdrawalService) *WalletHandler {
 	return &WalletHandler{
-		walletService:  walletService,
-		depositService: depositService,
+		walletService:     walletService,
+		depositService:    depositService,
+		withdrawalService: withdrawalService,
 	}
 }
 
@@ -99,7 +102,7 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	id, err := httpcommon.GetIDPathParam(ctx)
+	walletID, err := httpcommon.GetIDPathParam(ctx)
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
@@ -109,9 +112,11 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
-	transaction, err := h.depositService.Do(ctx.Request().Context(), id, depositapp.DepositCommand{
-		UserID: userID,
-		Amount: req.Amount,
+	transaction, err := h.depositService.Do(ctx.Request().Context(), depositapp.DepositCommand{
+		UserID:         userID,
+		Amount:         req.Amount,
+		WalletID:       walletID,
+		IdempotencyKey: req.IdempotencyKey,
 	})
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
@@ -121,7 +126,7 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, nil)
 }
 
-// Withdraw godoc
+// Withdrawal godoc
 // @Summary      Списание средств с кошелька
 // @Description  Списывает указанную сумму с баланса кошелька. Если средств недостаточно, возвращается ошибка.
 // @Tags         Кошельки
@@ -135,14 +140,14 @@ func (h *WalletHandler) Deposit(ctx *echo.Context) error {
 // @Failure      404  {object} common.ErrorResponse   "Кошелёк не найден"
 // @Failure      409  {object} common.ErrorResponse   "Недостаточно средств на балансе"
 // @Failure      500  {object} common.ErrorResponse   "Внутренняя ошибка сервера"
-// @Router       /api/wallets/{id}/withdraw [post]
-func (h *WalletHandler) Withdraw(ctx *echo.Context) error {
+// @Router       /api/wallets/{id}/withdrawal [post]
+func (h *WalletHandler) Withdrawal(ctx *echo.Context) error {
 	var req WithdrawRequest
 	if err := httpcommon.ParseAndValidateRequestBody(ctx, &req); err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	id, err := httpcommon.GetIDPathParam(ctx)
+	walletID, err := httpcommon.GetIDPathParam(ctx)
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
@@ -152,13 +157,16 @@ func (h *WalletHandler) Withdraw(ctx *echo.Context) error {
 		return httpcommon.HTTPErrorResponse(ctx, httpcommon.ErrUnauthorized)
 	}
 
-	wallet, err := h.walletService.Withdraw(ctx.Request().Context(), id, walletapp.WalletWithdrawCommand{
-		UserID: userID,
-		Amount: req.Amount,
+	transaction, err := h.withdrawalService.Do(ctx.Request().Context(), withdrawal.WithdrawalCommand{
+		UserID:         userID,
+		Amount:         req.Amount,
+		WalletID:       walletID,
+		IdempotencyKey: req.IdempotencyKey,
 	})
 	if err != nil {
 		return httpcommon.HTTPErrorResponse(ctx, err)
 	}
 
-	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, NewBalanceResponse(wallet.Balance))
+	// TODO: подумать, что нужно вернуть
+	return httpcommon.HTTPSuccessResponse(ctx, http.StatusOK, nil)
 }

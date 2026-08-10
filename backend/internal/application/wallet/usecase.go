@@ -39,7 +39,7 @@ func (u *WalletUsecase) Create(ctx context.Context, command CreateWalletCommand)
 	return *wallet, nil
 }
 
-func (u *WalletUsecase) Withdraw(ctx context.Context, id int64, command WalletWithdrawCommand) (domain.Wallet, error) {
+func (u *WalletUsecase) Withdrawal(ctx context.Context, id int64, command WalletWithdrawCommand) (domain.Wallet, error) {
 	if err := u.IsOwnedBy(ctx, id, command.UserID); err != nil {
 		return domain.Wallet{}, err
 	}
@@ -49,7 +49,7 @@ func (u *WalletUsecase) Withdraw(ctx context.Context, id int64, command WalletWi
 		return domain.Wallet{}, err
 	}
 
-	err = wallet.Withdraw(command.Amount)
+	err = wallet.Withdrawal(command.Amount)
 	if err != nil {
 		return domain.Wallet{}, err
 	}

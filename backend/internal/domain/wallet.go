@@ -44,7 +44,7 @@ func (w *Wallet) Deposit(amount int64) error {
 }
 
 // Списание денег с баланса
-func (w *Wallet) Withdraw(amount int64) error {
+func (w *Wallet) Withdrawal(amount int64) error {
 	if amount <= 0 {
 		return ErrWalletInvalidAmount
 	}

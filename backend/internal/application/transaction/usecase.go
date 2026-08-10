@@ -38,7 +38,7 @@ func (u *TransactionUsecase) Create(ctx context.Context, command CreateTransacti
 		return domain.Transaction{}, err
 	}
 
-	transaction, err := domain.NewTransaction(command.WalletID, command.Type, command.Amount, command.IdempotencyKey)
+	transaction, err := domain.NewTransaction(command.WalletID, domain.TransactionType(command.Type), command.Amount, command.IdempotencyKey)
 	if err != nil {
 		return domain.Transaction{}, err
 	}
