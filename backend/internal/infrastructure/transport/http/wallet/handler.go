@@ -13,13 +13,13 @@ import (
 )
 
 type WalletHandler struct {
-	walletService     walletService
-	depositService    depositService
-	withdrawalService withdrawalService
-	transferService   transferService
+	walletService     WalletService
+	depositService    DepositService
+	withdrawalService WithdrawalService
+	transferService   TransferService
 }
 
-func New(walletService walletService, depositService depositService, withdrawalService withdrawalService, transferService transferService) *WalletHandler {
+func New(walletService WalletService, depositService DepositService, withdrawalService WithdrawalService, transferService TransferService) *WalletHandler {
 	return &WalletHandler{
 		walletService:     walletService,
 		depositService:    depositService,

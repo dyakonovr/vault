@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
-type walletOwnershipChecker interface {
+//go:generate mockery
+type WalletOwnershipChecker interface {
 	IsOwnedBy(ctx context.Context, walletID, userID int64) error
 }

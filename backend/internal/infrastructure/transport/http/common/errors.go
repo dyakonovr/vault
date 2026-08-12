@@ -1,10 +1,13 @@
 package common
 
 import (
+	"errors"
 	"net/http"
 	nethttp "net/http"
 	walletapp "vault/internal/application/wallet"
 	"vault/internal/domain"
+
+	"github.com/go-playground/validator/v10"
 )
 
 // ------------- GENERAL ERRORS -------------
@@ -28,6 +31,11 @@ func mapDomainErrorToHttp(domainErr error) error {
 	}
 
 	if domainErrorsToHttp == nil {
+		return domainErr
+	}
+
+	var validationError validator.ValidationErrors
+	if errors.As(domainErr, &validationError) {
 		return domainErr
 	}
 

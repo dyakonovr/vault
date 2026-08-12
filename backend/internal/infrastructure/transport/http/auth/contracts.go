@@ -6,7 +6,8 @@ import (
 	"vault/internal/domain"
 )
 
-type authService interface {
+//go:generate mockery
+type AuthService interface {
 	Login(ctx context.Context, command authapp.LoginCommand) (authapp.Session, error)
 	Register(ctx context.Context, command authapp.RegisterCommand) error
 	Me(ctx context.Context, sessionID string) (domain.User, error)

@@ -8,11 +8,11 @@ import (
 )
 
 type WithdrawUsecase struct {
-	walletOwnershipChecker walletOwnershipChecker
+	walletOwnershipChecker WalletOwnershipChecker
 	unitOfWork             walletapp.UnitOfWork
 }
 
-func New(walletOwnershipChecker walletOwnershipChecker, unitOfWork walletapp.UnitOfWork) *WithdrawUsecase {
+func New(walletOwnershipChecker WalletOwnershipChecker, unitOfWork walletapp.UnitOfWork) *WithdrawUsecase {
 	return &WithdrawUsecase{
 		walletOwnershipChecker: walletOwnershipChecker,
 		unitOfWork:             unitOfWork,

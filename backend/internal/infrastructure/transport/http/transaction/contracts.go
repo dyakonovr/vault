@@ -6,7 +6,8 @@ import (
 	"vault/internal/domain"
 )
 
-type transactionService interface {
+//go:generate mockery
+type TransactionService interface {
 	List(ctx context.Context, command transactionapp.ListTransactionsCommand) ([]domain.Transaction, int64, error)
 	GetById(ctx context.Context, id int64, command transactionapp.GetTransactionByIdCommand) (domain.Transaction, error)
 }

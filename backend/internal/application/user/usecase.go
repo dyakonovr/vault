@@ -8,10 +8,10 @@ import (
 )
 
 type UserUsecase struct {
-	userRepo userRepository
+	userRepo UserRepository
 }
 
-func New(userRepo userRepository) *UserUsecase {
+func New(userRepo UserRepository) *UserUsecase {
 	return &UserUsecase{
 		userRepo: userRepo,
 	}

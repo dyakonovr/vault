@@ -5,7 +5,8 @@ import (
 	"vault/internal/domain"
 )
 
-type userRepository interface {
+//go:generate mockery
+type UserRepository interface {
 	List(ctx context.Context, params ListUsersCommand) ([]domain.User, int64, error)
 	GetById(ctx context.Context, id int64) (domain.User, error)
 	GetByLogin(ctx context.Context, login string) (domain.User, error)

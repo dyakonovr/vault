@@ -6,11 +6,11 @@ import (
 )
 
 type TransactionUsecase struct {
-	transactionRepo        transactionRepository
-	walletOwnershipChecker walletOwnershipChecker
+	transactionRepo        TransactionRepository
+	walletOwnershipChecker WalletOwnershipChecker
 }
 
-func New(transactionRepo transactionRepository, walletOwnershipChecker walletOwnershipChecker) *TransactionUsecase {
+func New(transactionRepo TransactionRepository, walletOwnershipChecker WalletOwnershipChecker) *TransactionUsecase {
 	return &TransactionUsecase{
 		transactionRepo:        transactionRepo,
 		walletOwnershipChecker: walletOwnershipChecker,

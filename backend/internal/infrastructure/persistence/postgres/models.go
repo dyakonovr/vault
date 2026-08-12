@@ -14,6 +14,8 @@ type UserModel struct {
 	UpdatedAt    time.Time `gorm:"not null"`
 }
 
+func (UserModel) TableName() string { return "users" }
+
 type WalletModel struct {
 	ID        int64     `gorm:"primaryKey"`
 	UserID    int64     `gorm:"uniqueIndex;not null"`
@@ -21,6 +23,8 @@ type WalletModel struct {
 	CreatedAt time.Time `gorm:"not null"`
 	UpdatedAt time.Time `gorm:"not null"`
 }
+
+func (WalletModel) TableName() string { return "wallets" }
 
 type TransactionModel struct {
 	ID             int64     `gorm:"primaryKey"`
@@ -31,3 +35,5 @@ type TransactionModel struct {
 	Status         string    `gorm:"not null;size:20"`
 	CreatedAt      time.Time `gorm:"not null"`
 }
+
+func (TransactionModel) TableName() string { return "transactions" }

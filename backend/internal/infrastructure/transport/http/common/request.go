@@ -3,10 +3,10 @@ package common
 import "github.com/labstack/echo/v5"
 
 func ParseAndValidateRequestBody(ctx *echo.Context, req any) error {
-	if err := ctx.Bind(&req); err != nil {
+	if err := ctx.Bind(req); err != nil {
 		return err
 	}
-	if err := ctx.Validate(&req); err != nil {
+	if err := ctx.Validate(req); err != nil {
 		return err
 	}
 

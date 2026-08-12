@@ -8,11 +8,11 @@ import (
 )
 
 type DepositUsecase struct {
-	walletOwnershipChecker walletOwnershipChecker
+	walletOwnershipChecker WalletOwnershipChecker
 	unitOfWork             walletapp.UnitOfWork
 }
 
-func New(walletOwnershipChecker walletOwnershipChecker, unitOfWork walletapp.UnitOfWork) *DepositUsecase {
+func New(walletOwnershipChecker WalletOwnershipChecker, unitOfWork walletapp.UnitOfWork) *DepositUsecase {
 	return &DepositUsecase{
 		walletOwnershipChecker: walletOwnershipChecker,
 		unitOfWork:             unitOfWork,

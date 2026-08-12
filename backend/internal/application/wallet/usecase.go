@@ -6,10 +6,10 @@ import (
 )
 
 type WalletUsecase struct {
-	walletRepository walletRepository
+	walletRepository WalletReader
 }
 
-func New(walletRepository walletRepository) *WalletUsecase {
+func New(walletRepository WalletReader) *WalletUsecase {
 	return &WalletUsecase{
 		walletRepository: walletRepository,
 	}

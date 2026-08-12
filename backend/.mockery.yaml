@@ -1,0 +1,16 @@
+all: true
+dir: "{{.InterfaceDir}}/mocks"
+filename: "mock_{{.InterfaceName}}.go"
+outpkg: "mocks"
+structname: "Mock{{.InterfaceName}}"
+packages:
+  vault/internal/application/wallet:
+  vault/internal/application/deposit:
+  vault/internal/application/withdrawal:
+  vault/internal/application/transfer:
+  vault/internal/application/user:
+  vault/internal/application/auth:
+  vault/internal/application/transaction:
+  vault/internal/infrastructure/transport/http/auth:
+  vault/internal/infrastructure/transport/http/wallet:
+  vault/internal/infrastructure/transport/http/transaction:

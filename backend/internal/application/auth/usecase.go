@@ -10,12 +10,12 @@ import (
 )
 
 type AuthUsecase struct {
-	userService  userService
-	sessionStore sessionStore
+	userService  UserService
+	sessionStore SessionStore
 	sessionTtl   time.Duration
 }
 
-func New(userService userService, sessionStore sessionStore, sessionTtl time.Duration) *AuthUsecase {
+func New(userService UserService, sessionStore SessionStore, sessionTtl time.Duration) *AuthUsecase {
 	return &AuthUsecase{
 		userService:  userService,
 		sessionStore: sessionStore,
