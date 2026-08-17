@@ -187,3 +187,63 @@ go run cmd/app/main.go
 ```
 
 Сервер стартует на порту `:8080`. Graceful shutdown срабатывает по `SIGINT`/`SIGTERM`, ожидание завершения текущих запросов — 10 секунд.
+
+## Тесты
+
+### Запуск
+
+```bash
+# Все тесты (кроме интеграционных — они требуют Docker)
+go test ./internal/domain/... ./internal/application/... ./internal/infrastructure/transport/http/...
+
+# Только интеграционные (требуют Docker, поднимают PostgreSQL в контейнере)
+go test ./internal/infrastructure/persistence/postgres/...
+
+# Все сразу
+go test ./internal/... -timeout 180s
+```
+
+### Domain (20 тестов)
+
+Unit-тесты доменных сущностей. Без моков — чистая бизнес-логика.
+
+| Файл | Что проверяется |
+|------|-----------------|
+| `domain/wallet_test.go` | `Deposit`, `Withdraw` — нормальные сценарии, недостаточно средств, невалидная сумма, переполнение баланса |
+| `domain/user_test.go` | Конструктор `NewUser` — валидные/невалидные логин и пароль |
+| `domain/transaction_test.go` | Конструктор `NewTransaction` — все типы (deposit, withdrawal, transfer_out, transfer_in), невалидный тип |
+
+### Application (39 тестов)
+
+Unit-тесты use case'ов с моками. Каждый мок-объект автоматически проверяет ожидания в `t.Cleanup`.
+
+| Пакет | Файл | Тесты | Что проверяется |
+|-------|------|-------|-----------------|
+| `auth` | `usecase_test.go` | 7 | `Login` (успех, пользователь не найден, неверный пароль, дублирование при регистрации), `Register` (успех, уже существует), `Me` (успех, сессия не найдена), `Logout` |
+| `deposit` | `usecase_test.go` | 4 | `Do` (успех, идемпотентность, ошибка владения, кошелёк не найден) |
+| `withdrawal` | `usecase_test.go` | 4 | `Do` (успех, идемпотентность, недостаточно средств, кошелёк не найден) |
+| `transfer` | `usecase_test.go` | 6 | `Do` (успех, идемпотентность, ошибка владения, недостаточно средств, кошелёк не найден, порядок блокировки) |
+| `wallet` | `usecase_test.go` | 5 | `Create`, `GetById` (успех, кошелёк не найден, доступ запрещён) |
+| `user` | `usecase_test.go` | 5 | `Create`, `GetById`, `Update`, `Delete`, `List` |
+| `transaction` | `usecase_test.go` | 4 | `List` (успех, пустой список, с фильтрами), `GetById` (успех, не найден) |
+
+### Infrastructure: HTTP-хендлеры (28 тестов)
+
+Unit-тесты хендлеров через Echo-роутер. Моки подменяют сервисы, middleware подменяют контекст (userID, idempotency key).
+
+| Пакет | Файл | Тесты | Что проверяется |
+|-------|------|-------|-----------------|
+| `auth` | `handler_test.go` | 8 | `Login` (успех, неверные credentials, валидация), `Register` (успех, дубликат), `Me` (успех, нет сессии), `Logout` |
+| `wallet` | `handler_test.go` | 12 | `Create` (успех, уже существует), `GetBalanceByID` (успех, не найден, доступ запрещён, нет авторизации), `Deposit` (успех, невалидная сумма), `Withdrawal` (успех, недостаточно средств), `Transfer` (успех, валидация) |
+| `transaction` | `handler_test.go` | 8 | `List` (успех, пусто, с фильтрами, пагинация, нет авторизации), `GetByID` (успех, не найден, невалидный ID) |
+
+### Infrastructure: PostgreSQL (18 тестов)
+
+Интеграционные тесты реальных репозиториев. Используют testcontainers — поднимают PostgreSQL в Docker-контейнере, выполняют миграции, работают с реальной БД.
+
+| Файл | Тесты | Что проверяется |
+|------|-------|-----------------|
+| `user_repo_test.go` | 7 | `Create`, `GetById`, `GetByLogin`, `GetById` (не найден), дубликат логина, `Update`, `Delete`, `List` |
+| `wallet_repo_test.go` | 5 | `Create`, `GetById`, `GetByUserId`, `Update` баланса, дубликат `user_id` |
+| `transaction_repo_test.go` | 4 | `Create`, `GetByIdempotencyKey`, дубликат idempotency key, `List` по `wallet_id` |
+| `concurrent_test.go` | 1 | Параллельное пополнение одного кошелька 10 горутинами — проверяет `SELECT ... FOR UPDATE` |
