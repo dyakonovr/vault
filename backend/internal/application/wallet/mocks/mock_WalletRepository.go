@@ -22,6 +22,63 @@ func (_m *MockWalletRepository) EXPECT() *MockWalletRepository_Expecter {
 	return &MockWalletRepository_Expecter{mock: &_m.Mock}
 }
 
+// GetById provides a mock function with given fields: ctx, id
+func (_m *MockWalletRepository) GetById(ctx context.Context, id int64) (domain.Wallet, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetById")
+	}
+
+	var r0 domain.Wallet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64) (domain.Wallet, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int64) domain.Wallet); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(domain.Wallet)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockWalletRepository_GetById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetById'
+type MockWalletRepository_GetById_Call struct {
+	*mock.Call
+}
+
+// GetById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int64
+func (_e *MockWalletRepository_Expecter) GetById(ctx interface{}, id interface{}) *MockWalletRepository_GetById_Call {
+	return &MockWalletRepository_GetById_Call{Call: _e.mock.On("GetById", ctx, id)}
+}
+
+func (_c *MockWalletRepository_GetById_Call) Run(run func(ctx context.Context, id int64)) *MockWalletRepository_GetById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int64))
+	})
+	return _c
+}
+
+func (_c *MockWalletRepository_GetById_Call) Return(_a0 domain.Wallet, _a1 error) *MockWalletRepository_GetById_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockWalletRepository_GetById_Call) RunAndReturn(run func(context.Context, int64) (domain.Wallet, error)) *MockWalletRepository_GetById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetByIdForUpdate provides a mock function with given fields: ctx, id
 func (_m *MockWalletRepository) GetByIdForUpdate(ctx context.Context, id int64) (domain.Wallet, error) {
 	ret := _m.Called(ctx, id)

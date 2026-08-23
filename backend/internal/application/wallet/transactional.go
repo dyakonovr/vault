@@ -11,6 +11,7 @@ import (
 
 type WalletRepository interface {
 	GetByIdForUpdate(ctx context.Context, id int64) (domain.Wallet, error)
+	GetById(ctx context.Context, id int64) (domain.Wallet, error)
 	Update(ctx context.Context, wallet *domain.Wallet) error
 }
 
